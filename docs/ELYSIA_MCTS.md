@@ -290,6 +290,254 @@ async def aforward_with_feedback_examples(
         optimized_module = optimizer.compile(self, trainset=examples)
 ```
 
+## DSPy Optimization Framework in Elysia
+
+Elysia leverages DSPy's sophisticated optimization framework to continuously improve its MCTS decision-making capabilities. The optimization process operates at multiple levels, from individual decision nodes to the entire reasoning pipeline.
+
+### Core Optimization Strategy
+
+The optimization in Elysia follows a **hierarchical few-shot learning approach** where:
+
+1. **Historical Examples**: Retrieved from Weaviate feedback database based on semantic similarity
+2. **Dynamic Module Compilation**: DSPy optimizers compile modules with retrieved examples
+3. **Contextual Adaptation**: Modules adapt their behavior based on similar past scenarios
+4. **Continuous Learning**: Each decision contributes to the feedback database for future optimization
+
+### Primary Optimizer: LabeledFewShot
+
+**Module**: [`dspy.LabeledFewShot`](https://dspy.ai/api/optimizers/LabeledFewShot/)
+**Purpose**: Implements few-shot learning by selecting the most relevant examples from a training set
+**Key Features**:
+- **Fixed Sample Size**: Uses exactly `k` examples (default k=10 in Elysia)
+- **Random Sampling**: When `sample=True`, randomly selects k examples from available training set
+- **Sequential Selection**: When `sample=False`, takes first k examples from training set
+- **Module Compilation**: Creates optimized version of the target module with selected examples
+
+```python
+# LabeledFewShot Implementation in Elysia
+optimizer = dspy.LabeledFewShot(k=10)
+optimized_module = optimizer.compile(
+    student=self,           # The ElysiaChainOfThought module to optimize
+    trainset=examples,      # Retrieved feedback examples
+    sample=True            # Use random sampling for example selection
+)
+```
+
+**Optimization Process**:
+1. **Example Retrieval**: `retrieve_feedback()` fetches similar examples from Weaviate
+2. **Example Selection**: LabeledFewShot selects k=10 most relevant examples
+3. **Module Compilation**: Creates new module instance with selected examples as demonstrations
+4. **Execution**: Optimized module uses examples as few-shot demonstrations for reasoning
+
+### Advanced Optimization Techniques
+
+#### 1. Multi-Model Optimization
+Elysia employs different optimization strategies for different model types:
+
+```python
+# Base LM optimization (faster, simpler reasoning)
+base_optimizer = dspy.LabeledFewShot(k=3)
+base_optimized = base_optimizer.compile(module, trainset=base_examples)
+
+# Complex LM optimization (deeper reasoning)
+complex_optimizer = dspy.LabeledFewShot(k=10)
+complex_optimized = complex_optimizer.compile(module, trainset=complex_examples)
+```
+
+#### 2. Contextual Example Weighting
+The system retrieves examples based on:
+- **Semantic Similarity**: Weaviate vector similarity search (threshold: 0.7)
+- **Task Type Matching**: Examples from similar decision contexts
+- **Success Patterns**: Preferentially selects examples that led to successful outcomes
+- **Failure Learning**: Includes failed attempts to avoid repeating mistakes
+
+#### 3. Dynamic Optimization Parameters
+```python
+# Adaptive k-value based on available examples
+k_value = min(10, len(examples)) if len(examples) > 0 else 0
+optimizer = dspy.LabeledFewShot(k=k_value)
+
+# Context-aware example selection
+if task_complexity == "high":
+    optimizer = dspy.LabeledFewShot(k=15)  # More examples for complex tasks
+else:
+    optimizer = dspy.LabeledFewShot(k=5)   # Fewer examples for simple tasks
+```
+
+### Optimization Limitations and Drawbacks
+
+#### 1. Fixed Sample Size Constraint
+**Primary Limitation**: LabeledFewShot relies on a fixed sample size (k=10), which creates several learning and generalization challenges:
+
+- **Insufficient Context for Complex Tasks**: Complex reasoning tasks may require more than 10 examples to capture the full decision space
+- **Overfitting to Limited Examples**: With only 10 examples, the model may overfit to specific patterns rather than learning generalizable strategies
+- **Inconsistent Learning**: Different decision contexts may have vastly different optimal example counts, but the fixed k-value treats all scenarios uniformly
+
+#### 2. Random Sampling Bias
+When `sample=True` (default in Elysia), the optimizer randomly selects examples, which can lead to:
+- **Suboptimal Example Selection**: Random sampling may miss the most relevant examples for the current context
+- **Inconsistent Performance**: Different runs may select different examples, leading to variable decision quality
+- **Loss of Temporal Patterns**: Sequential examples that show decision progression are lost in random sampling
+
+#### 3. Static Optimization Approach
+The current implementation uses static optimization that doesn't adapt based on:
+- **Task Complexity**: All tasks use the same k=10 examples regardless of complexity
+- **Historical Performance**: No feedback loop to adjust k-value based on past optimization success
+- **Context Diversity**: Doesn't consider the diversity of available examples when selecting the optimal subset
+
+#### 4. Limited Generalization Capabilities
+The fixed sample size approach has several generalization limitations:
+
+```python
+# Current approach - fixed k=10
+optimizer = dspy.LabeledFewShot(k=10)  # Always uses exactly 10 examples
+
+# Problems:
+# 1. May not be enough for complex multi-step reasoning
+# 2. May be too many for simple binary decisions
+# 3. No adaptation based on example quality or relevance
+# 4. No consideration of example diversity or coverage
+```
+
+#### 5. Memory and Computational Constraints
+- **Storage Overhead**: Storing and retrieving large numbers of examples impacts performance
+- **Computational Cost**: Processing more examples increases inference time
+- **Cache Invalidation**: Fixed sample size doesn't adapt to changing example relevance
+
+### Proposed Improvements
+
+#### 1. Adaptive Sample Size
+```python
+# Proposed adaptive approach
+def adaptive_k_selection(examples, task_complexity, context_diversity):
+    base_k = 5
+    complexity_multiplier = {"simple": 1, "medium": 2, "complex": 3}
+    diversity_bonus = min(5, context_diversity * 2)
+    
+    return min(20, base_k * complexity_multiplier[task_complexity] + diversity_bonus)
+
+k_value = adaptive_k_selection(examples, task_complexity, context_diversity)
+optimizer = dspy.LabeledFewShot(k=k_value)
+```
+
+#### 2. Quality-Based Example Selection
+```python
+# Proposed quality-aware selection
+def select_quality_examples(examples, k, quality_threshold=0.8):
+    # Filter by quality score
+    high_quality = [ex for ex in examples if ex.quality_score >= quality_threshold]
+    
+    # If not enough high-quality examples, include medium quality
+    if len(high_quality) < k:
+        medium_quality = [ex for ex in examples if 0.6 <= ex.quality_score < quality_threshold]
+        selected = high_quality + medium_quality[:k-len(high_quality)]
+    else:
+        selected = high_quality[:k]
+    
+    return selected
+```
+
+#### 3. Dynamic Optimization Strategy
+```python
+# Proposed dynamic optimization
+class AdaptiveLabeledFewShot:
+    def __init__(self, min_k=3, max_k=20):
+        self.min_k = min_k
+        self.max_k = max_k
+        self.performance_history = []
+    
+    def compile(self, student, trainset, context_metadata=None):
+        # Determine optimal k based on context and history
+        optimal_k = self._determine_optimal_k(trainset, context_metadata)
+        
+        # Use quality-based selection
+        selected_examples = self._select_quality_examples(trainset, optimal_k)
+        
+        # Compile with selected examples
+        return dspy.LabeledFewShot(k=optimal_k).compile(student, trainset=selected_examples)
+```
+
+### Integration with MCTS Process
+
+The optimization process is deeply integrated into Elysia's MCTS workflow:
+
+1. **Pre-Decision Optimization**: Before each decision, the system retrieves and optimizes the decision module
+2. **Context-Aware Learning**: Optimization considers the current tree state and available actions
+3. **Feedback Integration**: Each decision outcome contributes to the training set for future optimization
+4. **Multi-Level Optimization**: Different parts of the MCTS process (selection, evaluation, backpropagation) use different optimization strategies
+
+This sophisticated optimization framework enables Elysia to continuously improve its decision-making capabilities while maintaining the systematic exploration and exploitation balance characteristic of MCTS algorithms.
+
+### Alternative DSPy Optimizers for Enhanced Learning
+
+While Elysia currently uses `LabeledFewShot`, several other DSPy optimizers could provide enhanced learning capabilities:
+
+#### 1. BootstrapFewShot
+**Module**: [`dspy.BootstrapFewShot`](https://dspy.ai/api/optimizers/BootstrapFewShot/)
+**Purpose**: Generates synthetic examples by running the module on unlabeled inputs and using high-confidence outputs as training examples
+**Potential in Elysia**: Could generate synthetic decision examples from historical tree states, expanding the training set beyond human-annotated feedback
+
+#### 2. MIPROv2
+**Module**: [`dspy.MIPROv2`](https://dspy.ai/api/optimizers/MIPROv2/)
+**Purpose**: Multi-prompt optimization that generates and optimizes multiple prompt variations
+**Potential in Elysia**: Could optimize different prompt templates for different decision contexts (e.g., tool selection vs. parameter optimization)
+
+#### 3. COPRO
+**Module**: [`dspy.COPRO`](https://dspy.ai/api/optimizers/COPRO/)
+**Purpose**: Coordinate ascent optimization for prompt engineering
+**Potential in Elysia**: Could optimize the decision prompts used in `DecisionPrompt` signature for better reasoning quality
+
+#### 4. BootstrapFinetune
+**Module**: [`dspy.BootstrapFinetune`](https://dspy.ai/api/optimizers/BootstrapFinetune/)
+**Purpose**: Combines few-shot learning with model fine-tuning
+**Potential in Elysia**: Could fine-tune specialized models for different types of decisions (e.g., tool selection vs. parameter tuning)
+
+#### 5. GEPA (Generative Prompt Evolution)
+**Module**: [`dspy.GEPA`](https://dspy.ai/api/optimizers/GEPA/)
+**Purpose**: Evolutionary optimization of prompts using genetic algorithms
+**Potential in Elysia**: Could evolve decision-making prompts over time, adapting to changing user patterns and task requirements
+
+### Comparative Analysis of Optimization Strategies
+
+| Optimizer | Learning Type | Sample Efficiency | Generalization | Computational Cost | Best Use Case in Elysia |
+|-----------|---------------|-------------------|----------------|-------------------|------------------------|
+| **LabeledFewShot** | Few-shot | High | Limited | Low | Current implementation, simple decisions |
+| **BootstrapFewShot** | Self-supervised | Medium | Good | Medium | Generating synthetic examples |
+| **MIPROv2** | Multi-prompt | High | Excellent | High | Complex decision contexts |
+| **COPRO** | Coordinate ascent | Medium | Good | Medium | Prompt optimization |
+| **BootstrapFinetune** | Fine-tuning | Low | Excellent | Very High | Specialized decision models |
+| **GEPA** | Evolutionary | Low | Excellent | High | Long-term adaptation |
+
+### Recommended Optimization Pipeline
+
+For enhanced learning and generalization, Elysia could implement a multi-stage optimization pipeline:
+
+```python
+class ElysiaOptimizationPipeline:
+    def __init__(self):
+        self.stage1_optimizer = dspy.LabeledFewShot(k=5)  # Quick few-shot
+        self.stage2_optimizer = dspy.BootstrapFewShot()   # Generate examples
+        self.stage3_optimizer = dspy.MIPROv2()            # Multi-prompt optimization
+        
+    def optimize_decision_module(self, module, context, available_examples):
+        # Stage 1: Quick few-shot with available examples
+        if len(available_examples) > 0:
+            stage1_module = self.stage1_optimizer.compile(module, trainset=available_examples)
+        else:
+            stage1_module = module
+            
+        # Stage 2: Generate synthetic examples
+        synthetic_examples = self._generate_synthetic_examples(stage1_module, context)
+        
+        # Stage 3: Multi-prompt optimization with combined examples
+        combined_examples = available_examples + synthetic_examples
+        optimized_module = self.stage3_optimizer.compile(module, trainset=combined_examples)
+        
+        return optimized_module
+```
+
+This multi-stage approach would address the limitations of the current fixed-sample-size approach while maintaining computational efficiency.
+
 ## MCTS Process Flow
 
 ### 1. Tree Initialization

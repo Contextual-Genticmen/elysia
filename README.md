@@ -19,7 +19,7 @@ Elysia is an agentic platform designed to use tools in a decision tree. A decisi
 
 Installation is as simple as:
 ```bash
-pip install elysia-ai
+uv add elysia-ai
 ```
 
 <p align="center">
@@ -88,22 +88,33 @@ This will use the built-in open source _query_ tool or _aggregate_ tool to inter
 
 ## Installation (bash) (Linux/MacOS)
 
-### PyPi (Recommended)
+### uv (Recommended)
 
 Elysia requires Python 3.12:
 - [Installation via brew (macOS)](https://formulae.brew.sh/formula/python@3.12)
 - [Installation via installer (Windows)](https://www.python.org/downloads/release/python-3120/)
 - [Installation (Ubuntu)](https://ubuntuhandbook.org/index.php/2023/05/install-python-3-12-ubuntu/)
 
+First install uv if you haven't already:
+```bash
+# On macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# On Windows
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
 Optionally create a virtual environment via
 ```bash
-python3.12 -m venv .venv
-source .venv/bin/activate
+uv venv
+source .venv/bin/activate  # On Unix
+# or
+.venv\Scripts\activate  # On Windows
 ```
 
 Then simply run 
 ```bash
-pip install elysia-ai
+uv add elysia-ai
 ```
 to install straight away!
 
@@ -117,14 +128,14 @@ move to the working directory via
 ```bash
 cd elysia
 ```
-Create a virtual environment with Python (version 3.10 - 3.12)
+Create a virtual environment and install dependencies with uv
 ```bash
-python3.12 -m venv .venv
-source .venv/bin/activate
-```
-and then install Elysia via pip
-```bash
-pip install -e .
+uv venv
+source .venv/bin/activate  # On Unix
+# or
+.venv\Scripts\activate  # On Windows
+
+uv sync
 ```
 Done! You can now use the Elysia python package
 
