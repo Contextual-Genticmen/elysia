@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # Weaviate Vector Database
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.27.8
+    container_name: elysia-weaviate
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      DEFAULT_VECTORIZER_MODULE: 'text2vec-openai'
+      ENABLE_MODULES: 'text2vec-openai,text2vec-cohere,text2vec-huggingface,generative-openai'
+      CLUSTER_HOSTNAME: 'node1'
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    networks:
+      - elysia-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/.well-known/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Elysia Application
+  elysia:
+    build:
+      context: .
+      dockerfile: dockerfile/Dockerfile
+    container_name: elysia-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Weaviate Configuration (local Docker instance)
+      WCD_URL: http://weaviate:8080
+      WCD_API_KEY: ${WCD_API_KEY:-}
+      WEAVIATE_IS_LOCAL: 'true'
+      
+      # LLM API Keys (from .env file)
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      COHERE_API_KEY: ${COHERE_API_KEY:-}
+      
+      # Application Settings
+      LOGGING_LEVEL: ${LOGGING_LEVEL:-INFO}
+      USE_FEEDBACK: ${USE_FEEDBACK:-False}
+      FIRST_START_ELYSIA: ${FIRST_START_ELYSIA:-0}
+      
+      # Server Configuration
+      HOST: 0.0.0.0
+      PORT: 8000
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./elysia/api/static_custom:/app/elysia/api/static_custom
+      - ./elysia/api/user_configs:/app/elysia/api/user_configs
+      - ./.env:/app/.env:ro
+    depends_on:
+      weaviate:
+        condition: service_healthy
+    networks:
+      - elysia-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Ollama for local LLM support
+  ollama:
+    image: ollama/ollama:latest
+    container_name: elysia-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - elysia-network
+    profiles:
+      - local-llm
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  weaviate_data:
+    driver: local
+  ollama_data:
+    driver: local
+
+networks:
+  elysia-network:
+    driver: bridge

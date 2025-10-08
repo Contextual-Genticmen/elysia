@@ -1,77 +1,369 @@
-# Elysia MCTS Implementation Study
+# Elysia MCTS: Optimization Caveats for Agentic AI Engineers
 
-This document provides a comprehensive analysis of Elysia's Monte Carlo Tree Search (MCTS)-like implementation, exposing the functional modules that control the underlying reasoning mechanisms.
+**Purpose**: Actionable guidance for optimizing execution trees at the **DSPy optimizer level** (few-shot compilation, LM switching) and **Elysia level** (tree structure, context injection, prompt engineering). Concise, grounded snippets only.
 
-## Overview
+## Two optimization layers
 
-Elysia implements an MCTS-inspired decision tree system where agents navigate through a tree of possible actions to solve complex user queries. Unlike traditional MCTS which uses random simulation, Elysia uses structured LLM-based reasoning at each decision point, combined with sophisticated feedback mechanisms for continuous improvement.
+1. **DSPy layer**: Example retrieval/compilation (`LabeledFewShot`, `k=10`), LM selection (`base_lm` vs `complex_lm`), fallback behavior
+2. **Elysia layer**: Tree structure (`_get_successive_actions`), prompt templates (`DecisionPrompt`), context injection (`ElysiaChainOfThought`), tool gating (`is_tool_available`), termination logic
+
+---
+
+## Elysia Layer: Tree Structure & Prompt Engineering for Quantitative Customization
+
+### 1. Exploration horizon via `_get_successive_actions` (structure-only)
+
+**Location**: `elysia/tree/tree.py`
+
+```python
+def _get_successive_actions(self, successive_actions: dict, current_options: dict) -> dict:
+    for branch in current_options:
+        successive_actions[branch] = {}
+        if current_options[branch]["options"] != {}:
+            successive_actions[branch] = self._get_successive_actions(
+                successive_actions[branch], current_options[branch]["options"]
+            )
+    return successive_actions
+```
+
+**What it does**: Recursively maps the tree shape (branch → sub-branches) and injects it into `DecisionPrompt.successive_actions` as context.
+
+**Caveats for quantitative optimization**:
+- **No intrinsic scoring**: This is pure structure—no UCB, visit counts, or value estimates. The LLM sees only the topology.
+- **Token cost scales with depth**: Deep/wide trees inflate prompt size without adding decision signal.
+- **Customization lever**: Modify tree construction (`.add_branch()`, `.add_tool()`) to encode domain-specific structure. Example: for aggregation-heavy domains, create a shallow "aggregate" branch with many leaf tools; for exploration-heavy domains, create deeper chains with conditional gating.
+
+**Domain-specific structural prompting**:
+```python
+# Example: Quantitative finance domain
+tree.add_branch(root=True, branch_id="base", instruction="Choose: data retrieval, quantitative analysis, or reporting")
+tree.add_branch(branch_id="quant_analysis", from_branch_id="base", 
+    instruction="Select statistical method: correlation, regression, time-series, or risk metrics")
+tree.add_tool(branch_id="quant_analysis", tool=CorrelationTool)
+tree.add_tool(branch_id="quant_analysis", tool=RegressionTool)
+# Result: successive_actions shows {"quant_analysis": {"correlation": {}, "regression": {}}} 
+# → LLM sees quantitative structure explicitly
+```
+
+### 2. Prompt template engineering: `DecisionPrompt` for explainable, quantitative decisions
+
+**Location**: `elysia/tree/prompt_templates.py` ([L5-L144](https://github.com/Contextual-Genticmen/elysia/blob/main/elysia/tree/prompt_templates.py#L5-L130))
+
+**Key input fields for customization**:
+
+```python
+class DecisionPrompt(dspy.Signature):
+    instruction: str = dspy.InputField(
+        description="Specific guidance for this decision point that must be followed"
+    )
+    
+    tree_count: str = dspy.InputField(
+        description="Current attempt number as 'X/Y' where X=current, Y=max. Consider ending as X approaches Y."
+    )
+    
+    available_actions: list[dict] = dspy.InputField(
+        description="List of possible actions: {name: {function_name, description, inputs}}"
+    )
+    
+    unavailable_actions: list[dict] = dspy.InputField(
+        description="Actions unavailable now: {name: {function_name, available_at}}"
+    )
+    
+    successive_actions: str = dspy.InputField(
+        description="Actions that stem from current actions (nested dict structure)"
+    )
+    
+    previous_errors: list[dict] = dspy.InputField(
+        description="Errors from previous actions, organized by function_name"
+    )
+```
+
+**Quantitative customization strategies**:
+
+1. **Inject scoring/metrics into `instruction`**:
+   ```python
+   decision_node = DecisionNode(
+       instruction="""Choose action with highest expected information gain.
+       Priority: aggregate (cost=1, gain=high) > query (cost=3, gain=medium) > text (cost=0, gain=low).
+       Current budget: 5 units."""
+   )
+   ```
+
+2. **Encode tool metadata in `available_actions` descriptions**:
+   ```python
+   tool.description = """Correlation analysis tool. 
+   Complexity: O(n²). Typical runtime: 2s for n=1000. 
+   Output: correlation matrix + p-values. 
+   Best for: identifying linear relationships in numerical data."""
+   ```
+
+3. **Use `tree_count` for adaptive strategies**:
+   ```python
+   # In DecisionPrompt docstring or instruction:
+   """If tree_count shows X/Y where X > Y*0.8, prioritize low-cost actions or termination."""
+   ```
+
+4. **Leverage `unavailable_actions.available_at` for conditional logic**:
+   ```python
+   # In tool's is_tool_available() docstring:
+   """Available after: 1) data retrieved, 2) schema validated, 3) min 100 rows present."""
+   # → LLM sees explicit prerequisites for quantitative workflows
+   ```
+
+**Output fields for explainability**:
+
+```python
+function_name: str = dspy.OutputField(
+    description="Select exactly one function name from available_actions..."
+)
+
+function_inputs: dict[str, Any] = dspy.OutputField(
+    description="Inputs for selected function. Must match available_actions[function_name]['inputs']."
+)
+
+end_actions: bool = dspy.OutputField(
+    description="Has end_goal been achieved? Set True to terminate after this action."
+)
+```
+
+**Caveat**: `DecisionPrompt` has no built-in `reasoning` or `confidence` output by default. To add explainability:
+
+```python
+# Modify ElysiaChainOfThought initialization:
+decision_module = ElysiaChainOfThought(
+    DecisionPrompt,
+    tree_data=tree_data,
+    reasoning=True,  # ← Adds reasoning: str output field
+    ...
+)
+# Now output.reasoning contains step-by-step justification
+```
+
+### 3. Context injection control: `ElysiaChainOfThought` for token efficiency
+
+**Location**: `elysia/util/elysia_chain_of_thought.py`
+
+**Optional context inputs** (turn on deliberately):
+
+```python
+ElysiaChainOfThought(
+    signature=DecisionPrompt,
+    tree_data=tree_data,
+    environment=True,           # ← Retrieved objects from prior actions
+    collection_schemas=True,    # ← DB schemas (EXPENSIVE)
+    tasks_completed=True,       # ← Chain-of-thought history
+    reasoning=True,             # ← Step-by-step output
+    message_update=True,        # ← User-facing status
+)
+```
+
+**Token control strategies**:
+
+```python
+# Narrow schemas to specific collections:
+ElysiaChainOfThought(..., collection_schemas=True, collection_names=["trades", "prices"])
+
+# Implementation (elysia_chain_of_thought.py L328-338):
+if self.collection_schemas:
+    if self.collection_names != []:
+        kwargs["collection_schemas"] = self.tree_data.output_collection_metadata(
+            collection_names=self.collection_names, with_mappings=False
+        )
+    else:
+        kwargs["collection_schemas"] = self.tree_data.output_collection_metadata(with_mappings=False)
+```
+
+**Quantitative domain example**:
+```python
+# For financial analysis: only inject schemas when choosing data tools
+if current_branch == "data_retrieval":
+    decision_module = ElysiaChainOfThought(..., collection_schemas=True, collection_names=["market_data"])
+else:
+    decision_module = ElysiaChainOfThought(..., collection_schemas=False)  # Save tokens
+```
+
+### 4. Tool availability gating for conditional workflows
+
+**Location**: `elysia/tree/tree.py`, `Tree._get_available_tools()`
+
+```python
+async def _get_available_tools(self, current_decision_node, client_manager):
+    available_tools = []
+    unavailable_tools = []
+    for tool in current_decision_node.options.keys():
+        if "is_tool_available" in dir(self.tools[tool]) and await self.tools[tool].is_tool_available(
+            tree_data=self.tree_data, base_lm=self.base_lm, complex_lm=self.complex_lm, client_manager=client_manager
+        ):
+            available_tools.append(tool)
+        else:
+            is_tool_available_doc = self.tools[tool].is_tool_available.__doc__.strip() if ... else ""
+            unavailable_tools.append((tool, is_tool_available_doc))
+    return available_tools, unavailable_tools
+```
+
+**Quantitative gating example**:
+
+```python
+class RegressionTool(Tool):
+    async def is_tool_available(self, tree_data, **kwargs):
+        """Available when: min 30 data points, 2+ numerical columns, no missing values > 10%."""
+        if "data" not in tree_data.environment.environment:
+            return False
+        data = tree_data.environment.environment["data"]
+        return len(data.objects) >= 30 and data.metadata.get("numerical_cols", 0) >= 2
+```
+
+**Caveat**: The docstring is surfaced to the LLM as `unavailable_actions[tool]["available_at"]`. Make it actionable:
+- ❌ Bad: `"Not available yet"`
+- ✅ Good: `"Available after retrieving ≥30 rows with ≥2 numerical columns"`
+
+---
+
+## DSPy Layer: Optimizer & LM Switching
+
+### 1. Few-shot compilation with `LabeledFewShot`
+
+**Location**: `elysia/util/elysia_chain_of_thought.py`, `aforward_with_feedback_examples()`
+
+```python
+examples, uuids = await retrieve_feedback(client_manager, self.tree_data.user_prompt, feedback_model, n=10)
+if len(examples) > 0:
+    optimizer = dspy.LabeledFewShot(k=10)  # ← Fixed k=10
+    optimized_module = optimizer.compile(self, trainset=examples)
+else:
+    return await self.aforward(lm=complex_lm, **kwargs)  # ← Fallback: no examples → complex LM
+
+# LM selection by example count:
+if len(examples) < num_base_lm_examples:  # default 3
+    return await optimized_module.aforward(lm=complex_lm, **kwargs)
+else:
+    return await optimized_module.aforward(lm=base_lm, **kwargs)
+```
+
+**Caveats**:
+- `k=10` is hardcoded; modify source to tune.
+- `num_base_lm_examples=3` threshold: <3 examples → use complex LM (more capable), ≥3 → use base LM (faster/cheaper).
+- No examples → skip compilation, use complex LM.
+
+**Quantitative tuning**:
+- For high-stakes decisions (e.g., financial trades): set `num_base_lm_examples=10` to always use complex LM.
+- For low-stakes (e.g., data filtering): set `num_base_lm_examples=1` to prefer base LM.
+
+### 2. Feedback retrieval behavior
+
+**Location**: `elysia/util/retrieve_feedback.py`
+
+```python
+if not await client.collections.exists("ELYSIA_FEEDBACK__"):
+    return [], []  # ← No collection → no examples
+
+superpositive = await feedback_collection.query.near_text(
+    query=user_prompt, filters=Filter(..., feedback==2.0), certainty=0.7, limit=n
+)
+if len(superpositive.objects) < n:
+    positive = await feedback_collection.query.near_text(
+        query=user_prompt, filters=Filter(..., feedback==1.0), certainty=0.7, limit=n
+    )
+    feedback_objects = superpositive.objects + positive.objects[:(n - len(superpositive.objects))]
+
+random.shuffle(relevant_updates)  # ← Introduces variability
+relevant_updates = relevant_updates[:n]
+```
+
+**Caveats**:
+- Requires `ELYSIA_FEEDBACK__` collection in Weaviate.
+- `certainty=0.7` threshold: lower → more examples (noisier), higher → fewer examples (stricter).
+- Random shuffle → run-to-run variability in example selection.
+
+**Quantitative optimization**:
+- For deterministic behavior: remove `random.shuffle()` or seed it.
+- For domain-specific retrieval: add metadata filters (e.g., `Filter.by_property("domain").equal("finance")`).
+
+### 3. Assertion & retry logic
+
+**Location**: `elysia/tree/util.py`, `AssertedModule`
+
+```python
+class AssertedModule(dspy.Module):
+    def __init__(self, module, assertion: Callable, max_tries: int = 3):
+        self.assertion = assertion  # (kwargs, pred) → (bool, feedback_str)
+        self.max_tries = max_tries
+    
+    async def aforward(self, **kwargs):
+        pred = await self.module.acall(**kwargs)
+        num_tries = 0
+        asserted, feedback = self.assertion(kwargs, pred)
+        
+        while not asserted and num_tries <= self.max_tries:
+            asserted_module = self.modify_signature_on_feedback(pred, feedback)
+            pred = await asserted_module.aforward(
+                previous_feedbacks=self.previous_feedbacks,
+                previous_attempts=self.previous_attempts,
+                **kwargs
+            )
+            asserted, feedback = self.assertion(kwargs, pred)
+            num_tries += 1
+        return pred
+```
+
+**Quantitative customization**:
+
+```python
+# Example: Strict assertion for tool selection
+def _tool_assertion(kwargs, pred):
+    valid = pred.function_name in self.options
+    feedback = f"Must choose from {list(self.options.keys())}" if not valid else ""
+    return valid, feedback
+
+decision_executor = AssertedModule(decision_module, assertion=_tool_assertion, max_tries=2)
+```
+
+**Caveat**: Keep `max_tries` low (1-3) to avoid token/cost explosion. Each retry adds previous attempts to context.
+
+---
+
+## Quantitative Optimization Checklist
+
+### Tree structure
+- ✅ Encode domain logic in branch hierarchy (shallow for aggregation, deep for sequential workflows)
+- ✅ Keep `_get_successive_actions` output shallow to minimize tokens
+- ✅ Use `.add_branch(instruction=...)` to inject quantitative guidance (costs, priorities, constraints)
+
+### Prompt engineering
+- ✅ Inject scoring/metrics into `DecisionPrompt.instruction`
+- ✅ Add complexity/runtime metadata to tool descriptions
+- ✅ Use `tree_count` for adaptive strategies (e.g., "if X > 0.8*Y, prefer termination")
+- ✅ Write actionable `is_tool_available()` docstrings (surfaced as `available_at`)
+- ✅ Enable `reasoning=True` for explainability
+
+### Context injection
+- ✅ Enable `collection_schemas` only when needed; constrain via `collection_names`
+- ✅ Use `tasks_completed=True` to avoid repeats (adds tokens but prevents loops)
+- ✅ Disable `environment=True` for stateless decisions
+
+### DSPy optimization
+- ✅ Ensure `ELYSIA_FEEDBACK__` exists before enabling `USE_FEEDBACK`
+- ✅ Tune `num_base_lm_examples` threshold (default 3) for cost/quality tradeoff
+- ✅ Modify `k=10` in source if domain needs more/fewer examples
+- ✅ Set `max_tries` conservatively (1-3) in `AssertedModule`
+- ✅ Remove `random.shuffle()` in `retrieve_feedback.py` for determinism
+
+### Observability
+- ✅ Use `Tree.log_token_usage()` to measure impact of schemas/reasoning
+- ✅ Monitor `tree_count` to detect loops
+- ✅ Track `previous_errors` to identify systematic failures
+
+---
+
+## Architecture Overview
 
 ## MCTS Architecture Diagram
 
 The following diagram illustrates Elysia's MCTS implementation with integrated DSPy components and feedback mechanisms:
 
-```mermaid
-flowchart TB
-    Start([User Query]) --> Init[Tree Initialization]
-    
-    Init --> Selection[Selection Phase<br/>DecisionNode]
-    
-    Selection --> ChainOfThought[ElysiaChainOfThought<br/>dspy.Module]
-    ChainOfThought --> DecisionPrompt[DecisionPrompt<br/>dspy.Signature]
-    
-    DecisionPrompt --> Feedback{Feedback<br/>Available?}
-    
-    Feedback -->|Yes| RetrieveFeedback[retrieve_feedback<br/>Query Similar Examples]
-    RetrieveFeedback --> LabeledFewShot[dspy.LabeledFewShot<br/>Optimizer k=10]
-    LabeledFewShot --> OptimizedModule[Optimized Module<br/>with Few-Shot Examples]
-    OptimizedModule --> PredictDecision
-    
-    Feedback -->|No| PredictDecision[dspy.Prediction<br/>Generate Decision]
-    
-    PredictDecision --> AssertedModule[AssertedModule<br/>Quality Validation]
-    
-    AssertedModule --> Assertion{Assertion<br/>Passed?}
-    
-    Assertion -->|Failed| CopiedModule[CopiedModule<br/>Add Previous Feedback]
-    CopiedModule --> Counter{Max Tries<br/>Reached?}
-    Counter -->|No| ChainOfThought
-    Counter -->|Yes| FailedDecision[Return with Feedback]
-    
-    Assertion -->|Passed| Exploration[Exploration Phase<br/>Get Successive Actions]
-    
-    Exploration --> EvaluateTools[Evaluate Available Tools<br/>Filter & Group by Type]
-    
-    EvaluateTools --> ExecuteAction[Execute Selected Action]
-    
-    ExecuteAction --> ToolExecution[Tool Execution<br/>e.g., Query, Aggregate]
-    
-    ToolExecution --> SummaryModule{Summary<br/>Needed?}
-    
-    SummaryModule -->|Yes| AggregateResults[Aggregate Tool<br/>Summary Statistics]
-    SummaryModule -->|No| DirectResults[Direct Results]
-    
-    AggregateResults --> BackProp
-    DirectResults --> BackProp[Back Propagation<br/>Training Update]
-    
-    BackProp --> StoreTraining[(Store Training Data<br/>Weaviate DB)]
-    
-    StoreTraining --> CheckEnd{End Goal<br/>Achieved?}
-    
-    CheckEnd -->|No| Selection
-    CheckEnd -->|Yes| End([Return Results])
-    
-    FailedDecision --> End
-    
-    style ChainOfThought fill:#e1f5ff
-    style DecisionPrompt fill:#e1f5ff
-    style LabeledFewShot fill:#e1f5ff
-    style PredictDecision fill:#e1f5ff
-    style AssertedModule fill:#fff4e6
-    style CopiedModule fill:#fff4e6
-    style RetrieveFeedback fill:#f0f0f0
-    style AggregateResults fill:#e8f5e9
-    style StoreTraining fill:#fce4ec
-```
+![MCTS Architecture](diagram/mcts_architecture.png)
+
+> **Note**: View the [mermaid diagram source](diagram/mcts_architecture.mmd) or [PNG version](diagram/mcts_architecture.png)
 
 ### Diagram Components
 
@@ -508,35 +800,6 @@ While Elysia currently uses `LabeledFewShot`, several other DSPy optimizers coul
 | **BootstrapFinetune** | Fine-tuning | Low | Excellent | Very High | Specialized decision models |
 | **GEPA** | Evolutionary | Low | Excellent | High | Long-term adaptation |
 
-### Recommended Optimization Pipeline
-
-For enhanced learning and generalization, Elysia could implement a multi-stage optimization pipeline:
-
-```python
-class ElysiaOptimizationPipeline:
-    def __init__(self):
-        self.stage1_optimizer = dspy.LabeledFewShot(k=5)  # Quick few-shot
-        self.stage2_optimizer = dspy.BootstrapFewShot()   # Generate examples
-        self.stage3_optimizer = dspy.MIPROv2()            # Multi-prompt optimization
-        
-    def optimize_decision_module(self, module, context, available_examples):
-        # Stage 1: Quick few-shot with available examples
-        if len(available_examples) > 0:
-            stage1_module = self.stage1_optimizer.compile(module, trainset=available_examples)
-        else:
-            stage1_module = module
-            
-        # Stage 2: Generate synthetic examples
-        synthetic_examples = self._generate_synthetic_examples(stage1_module, context)
-        
-        # Stage 3: Multi-prompt optimization with combined examples
-        combined_examples = available_examples + synthetic_examples
-        optimized_module = self.stage3_optimizer.compile(module, trainset=combined_examples)
-        
-        return optimized_module
-```
-
-This multi-stage approach would address the limitations of the current fixed-sample-size approach while maintaining computational efficiency.
 
 ## MCTS Process Flow
 

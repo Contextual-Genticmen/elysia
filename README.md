@@ -36,14 +36,16 @@ uv add elysia-ai
 
 ## Table of Contents
 
+- [Table of Contents](#table-of-contents)
 - [Get started (App)](#get-started-app)
 - [Get Started (Python)](#get-started-python)
-- [Installation](#installation-bash-linuxmacos)
-  - [PyPi (Recommended)](#pypi-recommended)
+- [Installation (bash) (Linux/MacOS)](#installation-bash-linuxmacos)
+  - [uv (Recommended)](#uv-recommended)
   - [GitHub](#github)
+- [Docker Setup](#docker-setup)
   - [Configuring Settings](#configuring-settings)
 - [Architecture](#architecture)
-- [Open Source Spirit](#open-source-spirit-)
+- [Open Source Spirit ✨](#open-source-spirit-)
 - [FAQ](#faq)
 
 
@@ -138,6 +140,25 @@ source .venv/bin/activate  # On Unix
 uv sync
 ```
 Done! You can now use the Elysia python package
+## Docker Setup
+
+Run Elysia with Docker (includes Weaviate):
+
+```bash
+# Setup and start
+make setup  # Create .env file
+make run    # Build and start everything
+```
+
+Access at http://localhost:8000
+
+**Common commands:**
+- `make run` - Build and start
+- `make down` - Stop services  
+- `make logs` - View logs
+- `make health` - Check status
+
+See `make help` for all commands.
 
 ### Configuring Settings
 
