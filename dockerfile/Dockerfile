@@ -16,8 +16,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv for fast dependency management
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.cargo/bin:$PATH"
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Set working directory
 WORKDIR /app
@@ -25,6 +24,10 @@ WORKDIR /app
 # Copy dependency files
 COPY pyproject.toml uv.lock ./
 COPY MANIFEST.in ./
+COPY README.md ./
+
+# Copy source code needed for editable install
+COPY elysia ./elysia
 
 # Install dependencies using uv
 RUN uv venv /app/.venv && \

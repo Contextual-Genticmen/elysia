@@ -9,6 +9,15 @@ from elysia.tools.retrieval.query import Query
 from elysia.tools.retrieval.aggregate import Aggregate
 from elysia.tools.text.text import CitedSummarizer, FakeTextResponse
 
+# Import MCP servers dynamically loaded from mcp.json
+# Each enabled server becomes one Elysia Tool
+from elysia.tools.mcp import mcp_loader  # noqa: F401
+
+# Import all dynamically created MCP tool classes into this module's namespace
+# so find_tool_classes() can discover them
+for _mcp_tool_name in mcp_loader.__all__:
+    globals()[_mcp_tool_name] = getattr(mcp_loader, _mcp_tool_name)
+
 
 # Or you can define the tool inline here
 class TellAJoke(Tool):

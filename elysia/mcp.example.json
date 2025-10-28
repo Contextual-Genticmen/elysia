@@ -1,0 +1,30 @@
+{
+  "servers": [
+    {
+      "name": "example_stdio_server",
+      "description": "Example MCP server using stdio transport",
+      "type": "stdio",
+      "server_script_path": "/path/to/your/mcp_server.py",
+      "enabled": false
+    },
+    {
+      "name": "example_sse_server",
+      "description": "Example MCP server using SSE transport",
+      "type": "sse",
+      "url": "http://localhost:8080/api/v3/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_TOKEN_HERE",
+        "Custom-Header": "value"
+      },
+      "inputs": [
+        {
+          "type": "promptString",
+          "id": "api_token",
+          "description": "API authentication token",
+          "password": true
+        }
+      ],
+      "enabled": false
+    }
+  ]
+}

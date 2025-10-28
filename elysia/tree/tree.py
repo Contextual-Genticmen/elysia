@@ -58,6 +58,7 @@ from elysia.config import (
 from elysia.util.objects import Tracker, TrainingUpdate, TreeUpdate
 from elysia.util.parsing import remove_whitespace
 from elysia.util.collection import retrieve_all_collection_names
+from elysia.tools.ui import load_default_tools_for_mode
 
 
 class Tree:
@@ -212,70 +213,16 @@ class Tree:
             return self._complex_lm
 
     def multi_branch_init(self) -> None:
-        self.add_branch(
-            root=True,
-            branch_id="base",
-            instruction="""
-            Choose a base-level task based on the user's prompt and available information.
-            You can search, which includes aggregating or querying information - this should be used if the user needs (more) information.
-            You can end the conversation by choosing text response, or summarise some retrieved information.
-            Base your decision on what information is available and what the user is asking for - you can search multiple times if needed,
-            but you should not search if you have already found all the information you need.
-            """,
-            status="Choosing a base-level task...",
-        )
-        self.add_tool(branch_id="base", tool=CitedSummarizer)
-        self.add_tool(branch_id="base", tool=FakeTextResponse)
-
-        self.add_branch(
-            root=False,
-            branch_id="search",
-            from_branch_id="base",
-            instruction="""
-            Choose between querying the knowledge base via semantic/keyword search, or aggregating information by performing operations, on the knowledge base.
-            Querying is when the user is looking for specific information related to the content of the dataset, requiring a specific search query. This is for retrieving specific information via a _query_, similar to a search engine.
-            Aggregating is when the user is looking for a specific operations on the dataset, such as summary statistics of the quantity of some items. Aggregation can also include grouping information by some property and returning statistics about the groups.
-            """,
-            description=f"""
-            Search the knowledge base. This should be used when the user is lacking information for this particular prompt. This retrieves information only and provides no output to the user except the information.
-            Choose to query (semantic or keyword search on a knowledge base), or aggregate information (calculate properties/summary statistics/averages and operations on the knowledge bases).
-            """,
-            status="Searching the knowledge base...",
-        )
-        self.add_tool(branch_id="search", tool=Query, summariser_in_tree=True)
-        self.add_tool(branch_id="search", tool=Aggregate)
-        self.add_tool(branch_id="base", tool=Visualise)
-        self.add_tool(SummariseItems, branch_id="search", from_tool_ids=["query"])
+        """Initialize tree with multi-branch configuration using modular tool loading."""
+        load_default_tools_for_mode(self, "multi_branch", logger=self.settings.logger)
 
     def one_branch_init(self) -> None:
-        self.add_branch(
-            root=True,
-            branch_id="base",
-            instruction="""
-            Choose a base-level task based on the user's prompt and available information.
-            Decide based on the tools you have available as well as their descriptions.
-            Read them thoroughly and match the actions to the user prompt.
-            """,
-            status="Choosing a base-level task...",
-        )
-        self.add_tool(branch_id="base", tool=CitedSummarizer)
-        self.add_tool(branch_id="base", tool=FakeTextResponse)
-        self.add_tool(branch_id="base", tool=Aggregate)
-        self.add_tool(branch_id="base", tool=Query, summariser_in_tree=True)
-        self.add_tool(branch_id="base", tool=Visualise)
-        self.add_tool(SummariseItems, branch_id="base", from_tool_ids=["query"])
+        """Initialize tree with one-branch configuration using modular tool loading."""
+        load_default_tools_for_mode(self, "one_branch", logger=self.settings.logger)
 
     def empty_init(self) -> None:
-        self.add_branch(
-            root=True,
-            branch_id="base",
-            instruction="""
-            Choose a base-level task based on the user's prompt and available information.
-            Decide based on the tools you have available as well as their descriptions.
-            Read them thoroughly and match the actions to the user prompt.
-            """,
-            status="Choosing a base-level task...",
-        )
+        """Initialize tree with empty configuration using modular tool loading."""
+        load_default_tools_for_mode(self, "empty", logger=self.settings.logger)
 
     def clear_tree(self) -> None:
         self.decision_nodes = {}
@@ -299,6 +246,21 @@ class Tree:
             raise ValueError(f"Invalid branch initialisation: {initialisation}")
 
         self.branch_initialisation = initialisation
+        
+        # Auto-load additional tools (e.g., MCP tools) after base initialization
+        self._load_additional_discovered_tools()
+    
+    def _load_additional_discovered_tools(self) -> None:
+        """
+        Load additional tools that have been discovered (e.g., MCP tools).
+        This runs after base initialization to add any dynamically discovered tools.
+
+        Note: This method is now deprecated as MCP tools are auto-loaded in
+        load_default_tools_for_mode. Kept for backwards compatibility.
+        """
+        # MCP tools are now auto-loaded in load_default_tools_for_mode
+        # This method is kept for backwards compatibility and custom tool discovery
+        pass
 
     def smart_setup(self) -> None:
         """

@@ -1,12 +1,7 @@
 from logging import Logger
 from elysia.objects import Tool, Error
 from elysia.util.elysia_chain_of_thought import ElysiaChainOfThought
-from elysia.tools.visualisation.objects import (
-    ChartResult,
-    BarChart,
-    HistogramChart,
-    ScatterOrLineChart,
-)
+from elysia.tools.visualisation.objects import ChartResult
 from elysia.tools.visualisation.util import convert_chart_types_to_matplotlib
 from elysia.tools.visualisation.prompt_templates import (
     CreateBarChart,

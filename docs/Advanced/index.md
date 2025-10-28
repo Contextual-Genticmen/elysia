@@ -6,5 +6,7 @@ There are many ways you can make Elysia into a completely custom app with its ow
 
 - [Technical Overview](technical_overview.md)
 - [How to create your own tools](advanced_tool_construction.md)
+- [Tool Discovery and Initialization](tool_discovery.md)
 - [How to interact with the Elysia Environment](environment.md)
 - [How to create your own objects](custom_objects.md)
+- [Elysia MCTS Implementation](ELYSIA_MCTS.md)

@@ -1,0 +1,29 @@
+{
+  "servers": [
+    {
+      "name": "api-ai-mcp",
+      "description": "Albert AI MCP Server - A comprehensive AI-powered computational chemistry platform that enables natural language interaction with advanced cheminformatics capabilities. The server provides intelligent molecular analysis and discovery tools including: molecular descriptor calculation for physicochemical property analysis, ML-powered property prediction with uncertainty quantification, similarity-based molecular recommendations with configurable filtering, and chemical identifier resolution between SMILES notation and standardized naming systems. Designed to accelerate drug discovery, materials science research, and chemical informatics workflows by abstracting complex computational chemistry operations into intuitive, conversational interactions. Ideal for exploring chemical space, evaluating molecular properties, and discovering structurally similar compounds without requiring deep cheminformatics expertise.",
+      "type": "sse",
+      "url": "http://localhost:8080/api/v3/mcp",
+      "headers": {
+        "Albert-Environment": "dev",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJzaW9uIjoyLCJhdWQiOiJhbGJlcnQiLCJpZCI6IlVTUjY4NzkiLCJzdWIiOiJVU1I2ODc5IiwidGVuYW50SWQiOiJURU4xIiwicGFydGl0aW9uIjoiIiwicm9sZSI6IkFMQiNST0wxIiwiY2xhc3MiOiJhZG1pbiIsInVzZXJUeXBlSWQiOjEsInN1YnNjcmlwdGlvbiI6IkF1dGhvcml6ZWQiLCJvaWQiOiI2ZWJjNjE5OC1iYzY2LTQ0YTUtOTdiOC0xZTY5MGE1YmM3MjIiLCJlbWFpbCI6Im1hdHRoZXcubW9AYWxiZXJ0aW52ZW50LmNvbSIsIm5hbWUiOiJNYXR0aGV3IE1vIiwiaWF0IjoxNzYwNDY3MjA5LCJleHAiOjE3NjE2NzY4MDl9.Y8Nlmw7Shj2_T4WYqNp5XLIRpMrvVNdFA0krZcyoaTo"
+      },
+      "inputs": [
+        {
+          "type": "promptString",
+          "id": "albert_token",
+          "description": "Albert API token",
+          "password": true
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "name": "graphiti-memory",
+      "description": "Graphiti Memory MCP Server - A memory management system for Graphiti",
+      "type": "sse",
+      "url": "http://localhost:8000/sse"
+    }
+  ]
+}
