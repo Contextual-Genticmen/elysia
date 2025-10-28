@@ -3,7 +3,7 @@ from typing import Any, List, Literal, Optional, Union
 from typing_extensions import TypeAlias
 from typing import get_args, get_origin
 
-import weaviate
+
 from dateutil import parser
 from pydantic import BaseModel, Field, field_validator
 from weaviate.collections import CollectionAsync

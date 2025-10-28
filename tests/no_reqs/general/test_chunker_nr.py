@@ -1,18 +1,8 @@
 import pytest
 import inspect
 
-from elysia.tools.retrieval.chunk import AsyncCollectionChunker, Chunker
-from elysia.util.client import ClientManager
+from elysia.tools.retrieval.chunk import Chunker
 
-from weaviate.classes.query import QueryReference
-from weaviate.classes.config import Configure, DataType, Property, ReferenceProperty
-from weaviate.collections.classes.data import DataObject, DataReference
-from weaviate.collections import CollectionAsync
-from weaviate.collections.classes.internal import Object, QueryReturn
-from weaviate.collections.classes.config_vectorizers import _Vectorizer
-from weaviate.exceptions import WeaviateInvalidInputError
-from weaviate.util import generate_uuid5
-from weaviate.client import WeaviateAsyncClient
 
 
 def test_chunker():

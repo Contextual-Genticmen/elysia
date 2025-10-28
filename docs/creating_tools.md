@@ -136,3 +136,106 @@ All optional arguments you can pass to the `@tool` decorator are:
 - `branch_id` (`str`): the ID of the branch on the tree to add the tool to.
 - `status` (`str`): a custom message to display whilst the tool is running.
 - `end` (`bool`): when `True`, this tool can be the end of the conversation if the decision agent decides it should end after the completion of this tool.
+
+## Tool Discovery and Initialization
+
+### Default Tools (Tree)
+
+Elysia automatically loads a set of default tools when a Tree is initialized. The specific tools loaded depend on the initialization mode:
+
+- **`one_branch`** (default): All tools are added to a single "base" branch
+  - Query, Aggregate, CitedSummarizer, FakeTextResponse, Visualise, SummariseItems
+
+- **`multi_branch`**: Tools are organized into multiple branches
+  - Base branch: CitedSummarizer, FakeTextResponse, Visualise
+  - Search branch: Query, Aggregate, SummariseItems
+
+- **`empty`**: No tools are loaded by default (you must add them manually)
+
+### Adding Custom Tools to Default Initialization
+
+Custom tools (including MCP tools) are automatically discovered and can be added to trees. The system looks for tools defined in:
+
+1. **`elysia/api/custom_tools.py`**: Import your tools here to make them discoverable
+2. **`elysia/tools/mcp/`**: MCP tools configured in `elysia/mcp.json` are automatically loaded
+
+Example of adding a custom tool to `custom_tools.py`:
+
+```python
+# In elysia/api/custom_tools.py
+from elysia.tools.my_custom_tool import MyCustomTool
+
+# MCP tools are auto-discovered when servers are enabled in mcp.json
+```
+
+### Tool Discovery System
+
+Elysia maintains a registry of all discovered tools in `elysia/config/discovered_tools.yaml`. This file categorizes tools by type:
+
+- `retrieval`: Query, Aggregate
+- `text`: CitedSummarizer, FakeTextResponse
+- `visualization`: Visualise, BasicLinearRegression
+- `postprocessing`: SummariseItems
+- `mcp`: Dynamically loaded MCP server tools
+- `other`: Uncategorized tools
+
+To regenerate this file after adding new tools:
+
+```python
+from elysia.util import generate_tool_discovery_yaml
+
+# Generate the YAML file
+generate_tool_discovery_yaml('elysia/config/discovered_tools.yaml')
+```
+
+### MCP Tools Integration
+
+MCP (Model Context Protocol) tools are automatically discovered and loaded when you:
+
+1. Configure MCP servers in `elysia/mcp.json`:
+```json
+{
+  "servers": [
+    {
+      "name": "my_mcp_server",
+      "description": "My custom MCP server",
+      "server_script_path": "/path/to/server.py",
+      "enabled": true
+    }
+  ]
+}
+```
+
+2. The system will:
+   - Automatically create an Elysia Tool class for each enabled server
+   - Add it to the tree's root branch during initialization
+   - Make it available via the `/tools/available` API endpoint
+
+MCP tools are loaded **after** the base initialization, so they're added on top of the default tools for your chosen mode.
+
+### Modular Tool Loading
+
+The tool initialization system is modular and defined in `elysia/tools/ui/default_tools.py`. You can customize which tools are loaded by:
+
+1. **Modifying the default configurations** in `DEFAULT_TOOL_CONFIGS`
+2. **Providing additional tool classes** during initialization:
+
+```python
+from elysia import Tree
+from elysia.tools.ui import load_default_tools_for_mode
+from my_tools import MyCustomTool
+
+tree = Tree(branch_initialisation="empty")
+load_default_tools_for_mode(
+    tree, 
+    "one_branch",
+    additional_tool_classes=[MyCustomTool]
+)
+```
+
+3. **Using the programmatic API** to add tools after initialization:
+
+```python
+tree = Tree()
+tree.add_tool(MyCustomTool, branch_id="base")
+```

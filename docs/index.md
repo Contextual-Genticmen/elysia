@@ -8,6 +8,10 @@ See the [basic example to get started right away!](basic.md) Or if you want to m
 
 To use Elysia, you need to either set up your models and API keys in your `.env` file, or specify them in the config. [See the setup page to get started.](setting_up.md)
 
+### MCP Integration
+
+Elysia now supports MCP (Model Context Protocol) server integration! Connect external tool servers and dynamically load tools via configuration. [See the MCP documentation to get started.](MCP/index.md)
+
 Elysia can be used very simply:
 ```python
 from elysia import tool, Tree

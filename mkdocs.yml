@@ -35,12 +35,21 @@ nav:
   - Advanced:
     - Overview: Advanced/index.md
     - Technical Overview: Advanced/technical_overview.md
-    - MCTS Implementation Study: ELYSIA_MCTS.md
+    - MCTS Implementation Study: Advanced/ELYSIA_MCTS.md
     - Local Models: Advanced/local_models.md
     - MCTS Implementation Study: ELYSIA_MCTS.md
     - Tool Construction: Advanced/advanced_tool_construction.md
+    - Tool Discovery & Initialization: Advanced/tool_discovery.md
     - Custom Objects: Advanced/custom_objects.md
     - Environment: Advanced/environment.md
+  - MCP Integration:
+    - Overview: MCP/index.md
+    - Quickstart: MCP/quickstart.md
+    - Architecture: MCP/architecture.md
+    - API Integration: MCP/api_integration.md
+    - Usage Guide: MCP/usage_guide.md
+    - Implementation Details: MCP/implementation_details.md
+    - Summary: MCP/overview.md
   - API: 
     - Overview: API/index.md
     - User Management: API/user_and_tree_managers.md
