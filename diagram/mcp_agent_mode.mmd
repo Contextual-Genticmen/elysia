@@ -1,0 +1,12 @@
+graph TB
+    User[User: Natural Language Query] --> MCPTool[MCPTool Agent Gateway]
+    MCPTool -->|Initialize| ReAct[ReAct Agent<br/>LangChain]
+    ReAct -->|Decides| SSE[SSE Client]
+    SSE -->|HTTP/SSE| Server[Running MCP Server]
+    Server --> Tool1[Tool: search]
+    Server --> Tool2[Tool: analyze]
+    Server --> Tool3[Tool: summarize]
+    
+    style MCPTool fill:#4A90E2,color:#fff
+    style ReAct fill:#9B59B6,color:#fff
+    style Server fill:#E74C3C,color:#fff

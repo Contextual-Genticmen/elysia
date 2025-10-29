@@ -1,0 +1,15 @@
+flowchart TD
+    Start([Application Startup]) --> LoadMCP[elysia/tools/mcp/mcp_loader.py<br/>Reads mcp.json<br/>Creates MCP classes]
+    LoadMCP --> TreeInit[Tree Initialization<br/>branch_initialisation='one_branch']
+    TreeInit --> SetBranch[set_branch_initialisation]
+    SetBranch --> LoadDefault[load_default_tools_for_mode<br/>Adds: Query, Aggregate, etc.]
+    LoadDefault --> DiscoverAdditional[_load_additional_discovered_tools]
+    DiscoverAdditional --> SearchCustom[discover_tools_from_module<br/>Only searches: elysia.api.custom_tools]
+    SearchCustom --> NoMCP[❌ DOES NOT FIND MCP tools!]
+    NoMCP --> BuildTree[tree.tree structure<br/>NO MCP TOOLS]
+    BuildTree --> Frontend[Frontend GET /tree/user/conversation<br/>❌ MCP tools NOT VISIBLE]
+    
+    style NoMCP fill:#ffcccc,stroke:#cc0000
+    style Frontend fill:#ffcccc,stroke:#cc0000
+    style BuildTree fill:#ffeecc,stroke:#cc6600
+

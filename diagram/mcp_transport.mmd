@@ -1,0 +1,48 @@
+graph TB
+    subgraph "MCPTool Configuration"
+        Config[MCPTool Instance]
+        TransportType{transport_type}
+    end
+    
+    subgraph "Stdio Transport (Local)"
+        Stdio[StdioServerParameters]
+        StdioClient[stdio_client]
+        LocalScript[Local Python Script<br/>server.py]
+        
+        StdioConfig[Configuration:<br/>- server_script_path: str<br/>- command: 'python']
+    end
+    
+    subgraph "SSE Transport (Remote)"
+        SSE[SSE Configuration]
+        SSEClient[sse_client]
+        RemoteServer[Remote HTTP Server<br/>http://host:port/mcp]
+        
+        SSEConfig[Configuration:<br/>- url: str<br/>- headers: dict]
+    end
+    
+    subgraph "Common MCP Layer"
+        Session[ClientSession]
+        Protocol[MCP Protocol]
+        Tools[load_mcp_tools]
+    end
+    
+    Config --> TransportType
+    TransportType -->|type='stdio'| Stdio
+    TransportType -->|type='sse'| SSE
+    
+    Stdio --> StdioConfig
+    StdioConfig --> StdioClient
+    StdioClient --> LocalScript
+    LocalScript --> Session
+    
+    SSE --> SSEConfig
+    SSEConfig --> SSEClient
+    SSEClient --> RemoteServer
+    RemoteServer --> Session
+    
+    Session --> Protocol
+    Protocol --> Tools
+    
+    style Stdio fill:#e8f5e9,stroke:#4CAF50
+    style SSE fill:#e3f2fd,stroke:#2196F3
+    style Session fill:#fff9c4,stroke:#FBC02D

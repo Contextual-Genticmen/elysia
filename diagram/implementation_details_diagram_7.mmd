@@ -1,0 +1,15 @@
+sequenceDiagram
+    participant Agent
+    participant MCPTool
+    participant MCPServer
+    
+    Note over Agent: Agent already knows<br/>tool name from config
+    
+    Agent->>MCPTool: action='execute'<br/>tool_name='analyze'<br/>tool_inputs={text: "..."}
+    activate MCPTool
+    MCPTool->>MCPTool: Initialize if needed
+    MCPTool->>MCPServer: Execute 'analyze' tool
+    MCPServer-->>MCPTool: Analysis result
+    MCPTool-->>Agent: Result([{sentiment: 0.8, ...}])
+    deactivate MCPTool
+

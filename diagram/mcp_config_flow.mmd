@@ -1,0 +1,12 @@
+flowchart LR
+    A[mcp.json] --> B[mcp_loader.py]
+    B --> C{MCP_AS_AGENT?}
+    C -->|True| D[MCPTool<br/>Agent Gateway]
+    C -->|False| E[Individual Tools]
+    D --> F[Tree Registration]
+    E --> F
+    F --> G[Available to Elysia]
+    
+    style A fill:#e1f5ff
+    style C fill:#fff4e6
+    style G fill:#e8f5e9

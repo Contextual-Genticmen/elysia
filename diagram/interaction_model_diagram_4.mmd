@@ -1,0 +1,17 @@
+flowchart TB
+    Start[Agent Decision] --> CheckAction{What does<br/>agent want?}
+    
+    CheckAction -->|Discover tools| List[action='list']
+    CheckAction -->|Use a tool| Execute[action='execute']
+    
+    List --> ListCall[MCPTool inputs:<br/>action='list']
+    ListCall --> ListResult[Returns tool list<br/>with schemas]
+    ListResult --> AgentKnows[Agent now knows:<br/>- Tool names<br/>- Tool descriptions<br/>- Tool parameters]
+    
+    Execute --> ExecCall[MCPTool inputs:<br/>action='execute'<br/>tool_name='search'<br/>tool_inputs={query: 'ML'}]
+    ExecCall --> ExecResult[Returns tool result]
+    
+    style List fill:#e3f2fd,stroke:#2196F3
+    style Execute fill:#e8f5e9,stroke:#4CAF50
+    style AgentKnows fill:#fff9c4,stroke:#FBC02D
+

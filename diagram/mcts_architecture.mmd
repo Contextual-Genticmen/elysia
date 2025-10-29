@@ -1,0 +1,37 @@
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize':'16px'}}}%%
+flowchart LR
+    Start([Query]) --> Decision[DecisionNode]
+    
+    Decision --> CoT[ElysiaChainOfThought]
+    CoT --> Feedback{Feedback?}
+    
+    Feedback -->|Yes| Retrieve[retrieve_feedback]
+    Retrieve --> FewShot[LabeledFewShot k=10]
+    FewShot --> Predict[Prediction]
+    
+    Feedback -->|No| Predict
+    
+    Predict --> Assert[AssertedModule]
+    Assert --> Check{Valid?}
+    
+    Check -->|No| Retry[Add Feedback]
+    Retry --> Tries{Max tries?}
+    Tries -->|No| CoT
+    Tries -->|Yes| Fail[Failed]
+    
+    Check -->|Yes| Explore[Get Actions]
+    Explore --> Execute[Execute Tool]
+    
+    Execute --> Store[(Store Training)]
+    Store --> Done{End goal?}
+    
+    Done -->|No| Decision
+    Done -->|Yes| End([Complete])
+    Fail --> End
+    
+    style CoT fill:#e1f5ff,stroke:#333,stroke-width:2px
+    style FewShot fill:#e1f5ff,stroke:#333,stroke-width:2px
+    style Assert fill:#fff4e6,stroke:#333,stroke-width:2px
+    style Retry fill:#fff4e6,stroke:#333,stroke-width:2px
+    style Retrieve fill:#f0f0f0,stroke:#333,stroke-width:2px
+    style Store fill:#fce4ec,stroke:#333,stroke-width:2px
