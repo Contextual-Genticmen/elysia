@@ -1,0 +1,13 @@
+graph LR
+    A[1. Configuration<br/>mcp.json] --> B[2. MCPTool Class<br/>Auto-generated]
+    B --> C[3. Tool Discovery<br/>Auto-loaded to tree]
+    C --> D[4. Agent Decision<br/>Selects MCPTool]
+    D --> E[5. Initialize<br/>Connect to MCP server]
+    E --> F[6. Action: list/execute<br/>Discover or run tools]
+    F --> G[7. Result<br/>Return to agent]
+    
+    style A fill:#e1f5ff
+    style D fill:#fff4e6
+    style F fill:#e8f5e9
+    style G fill:#f3e5f5
+

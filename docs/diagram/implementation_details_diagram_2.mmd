@@ -1,0 +1,35 @@
+sequenceDiagram
+    participant Agent as Elysia Agent
+    participant MCPTool as MCPTool Gateway
+    participant Init as initialize()
+    participant LC as LangChain Tools
+    participant MCP as MCP Server
+    
+    Note over Agent,MCP: Phase 1: Discovery & Initialization
+    
+    Agent->>MCPTool: First call (any action)
+    MCPTool->>Init: Check _initialized flag
+    Init->>LC: load_mcp_tools(session)
+    LC->>MCP: Connect via stdio/SSE
+    MCP-->>LC: Return tool list with schemas
+    LC-->>Init: LangChain tool objects
+    Init->>MCPTool: Cache tools in _langchain_tools[]
+    Note over MCPTool: Tools cached for reuse
+    
+    Note over Agent,MCP: Phase 2a: List Tools (Discovery)
+    
+    Agent->>MCPTool: Call with action='list'
+    MCPTool->>MCPTool: Extract tool metadata
+    Note over MCPTool: For each cached LangChain tool:<br/>name, description, input schema
+    MCPTool-->>Agent: Result([{name, description, inputs}])
+    
+    Note over Agent,MCP: Phase 2b: Execute Tool
+    
+    Agent->>MCPTool: Call with action='execute'<br/>+ tool_name='search'<br/>+ tool_inputs={query: "..."}
+    MCPTool->>MCPTool: get_tool_by_name('search')
+    MCPTool->>LC: langchain_tool.ainvoke(tool_inputs)
+    LC->>MCP: Execute 'search' with inputs
+    MCP-->>LC: Tool result
+    LC-->>MCPTool: Result data
+    MCPTool-->>Agent: Result/Text/Error objects
+

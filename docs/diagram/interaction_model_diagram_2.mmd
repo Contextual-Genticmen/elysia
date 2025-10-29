@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant Agent
+    participant MCPTool
+    participant MCPServer
+    
+    Agent->>MCPTool: action='list'
+    activate MCPTool
+    MCPTool->>MCPServer: Connect & discover tools
+    MCPServer-->>MCPTool: [search, analyze, summarize]
+    MCPTool-->>Agent: Result([<br/>  {name: 'search', inputs: {...}},<br/>  {name: 'analyze', inputs: {...}},<br/>  {name: 'summarize', inputs: {...}}<br/>])
+    deactivate MCPTool
+
