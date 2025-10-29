@@ -1,0 +1,16 @@
+graph TB
+    A[Agent] --> B[MCPTool<br/>mcp_api_ai_mcp]
+    B -->|action='list'| C[Discover]
+    B -->|action='execute'<br/>tool_name='search'| D[Execute Search]
+    B -->|action='execute'<br/>tool_name='analyze'| E[Execute Analyze]
+    
+    C --> F[MCP Server]
+    D --> F
+    E --> F
+    
+    style B fill:#4A90E2,stroke:#2E5C8A,color:#fff
+    
+    Note1[Benefits:<br/>✓ One tool<br/>✓ Dynamic discovery<br/>✓ No code gen<br/>✓ Flexible]
+    
+    style Note1 fill:#ccffcc,stroke:#00cc00
+

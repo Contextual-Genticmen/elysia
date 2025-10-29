@@ -1,0 +1,52 @@
+graph TB
+    subgraph "Elysia Tree"
+        Tree[Tree Instance]
+        Branch[Branch: 'base']
+        DecisionNode[Decision Node]
+    end
+
+    subgraph "Elysia MCP Integration"
+        MCPTool[MCPTool Gateway<br/>One per MCP Server]
+        Action{Action Type}
+        ListAction[action='list'<br/>Discover Tools]
+        ExecuteAction[action='execute'<br/>Run Specific Tool]
+    end
+
+    subgraph "LangChain Layer"
+        LCAdapter[langchain-mcp-adapters<br/>load_mcp_tools]
+        LCTools[LangChain Tools Cache<br/>tool1, tool2, tool3...]
+    end
+
+    subgraph "MCP Server"
+        MCPServer[MCP Server Process<br/>stdio or SSE]
+        Tool1[MCP Tool: search]
+        Tool2[MCP Tool: analyze]
+        Tool3[MCP Tool: summarize]
+    end
+
+    Tree --> Branch
+    Branch --> DecisionNode
+    DecisionNode --> MCPTool
+
+    MCPTool --> Action
+    Action -->|list| ListAction
+    Action -->|execute| ExecuteAction
+    
+    ListAction --> LCAdapter
+    ExecuteAction --> LCAdapter
+
+    LCAdapter --> MCPServer
+    LCAdapter -.caches.-> LCTools
+    LCTools -.used by.-> MCPTool
+
+    MCPServer --> Tool1
+    MCPServer --> Tool2
+    MCPServer --> Tool3
+
+    style MCPTool fill:#4A90E2,stroke:#2E5C8A,color:#fff
+    style LCAdapter fill:#F39C12,stroke:#D68910,color:#fff
+    style MCPServer fill:#E74C3C,stroke:#C0392B,color:#fff
+    style Action fill:#9B59B6,stroke:#7D3C98,color:#fff
+
+    classDef elysiaClass fill:#9B59B6,stroke:#7D3C98,color:#fff
+    class Tree,Branch,DecisionNode elysiaClass

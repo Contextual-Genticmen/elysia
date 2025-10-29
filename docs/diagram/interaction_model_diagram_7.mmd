@@ -1,0 +1,17 @@
+graph TB
+    A[Agent] --> B1[MCPSearchTool]
+    A --> B2[MCPAnalyzeTool]
+    A --> B3[MCPSummarizeTool]
+    
+    B1 --> C[MCP Server]
+    B2 --> C
+    B3 --> C
+    
+    style B1 fill:#ffcccc,stroke:#cc0000
+    style B2 fill:#ffcccc,stroke:#cc0000
+    style B3 fill:#ffcccc,stroke:#cc0000
+    
+    Note1[Issues:<br/>✗ N tools<br/>✗ Static only<br/>✗ Code gen needed<br/>✗ Inflexible]
+    
+    style Note1 fill:#ffcccc,stroke:#cc0000
+

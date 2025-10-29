@@ -4,50 +4,14 @@ Complete documentation for integrating MCP servers with Elysia.
 
 ## Quick Links
 
+- **[MCP_AS_AGENT Configuration](mcp_as_agent.md)** - ⭐ **NEW**: Control MCP behavior (Agent vs Individual mode)
 - **[Overview](overview.md)** - High-level summary of MCP integration
 - **[Quickstart](quickstart.md)** - 30-second setup guide
+- **[Interaction Model](interaction_model.md)** - How MCPTool works and parameter surfacing
 - **[Architecture](architecture.md)** - Technical architecture details
 - **[API Integration](api_integration.md)** - Complete API flow documentation
 - **[Usage Guide](usage_guide.md)** - Configuration and usage instructions
 - **[Implementation Details](implementation_details.md)** - Detailed changes, diagrams, and testing
-
-## What is MCP Integration?
-
-MCP (Model Context Protocol) integration allows Elysia to connect to external MCP-compliant tool servers, enabling:
-
-- **Dynamic Tool Loading**: Add tools from MCP servers via configuration
-- **Zero Code Changes**: Tools automatically discovered and registered
-- **Consistent Interface**: All MCP tools follow Elysia's Tool interface
-- **Isolation**: Each MCP server runs independently
-
-## Quick Example
-
-### 1. Configure MCP Server
-
-Edit `elysia/mcp.json`:
-
-```json
-{
-  "servers": [
-    {
-      "name": "my_server",
-      "description": "My custom MCP server",
-      "server_script_path": "/path/to/mcp_server.py",
-      "enabled": true
-    }
-  ]
-}
-```
-
-### 2. Rebuild Container
-
-```bash
-docker-compose build elysia && docker-compose up -d elysia
-```
-
-### 3. Use MCP Tools
-
-Tools are automatically available to all Trees created via the API!
 
 ## Documentation Structure
 
@@ -55,14 +19,55 @@ Tools are automatically available to all Trees created via the API!
 
 1. **Start with [Overview](overview.md)** - Understand what was built
 2. **Read [Quickstart](quickstart.md)** - Get up and running quickly
-3. **Review [Usage Guide](usage_guide.md)** - Learn configuration options
+3. **Learn [Interaction Model](interaction_model.md)** - Understand how MCPTool works
+4. **Review [Usage Guide](usage_guide.md)** - Learn configuration options
 
 ### For Developers
 
-1. **Study [Architecture](architecture.md)** - Understand the implementation
-2. **Review [API Integration](api_integration.md)** - See the complete flow
-3. **Read [Implementation Details](implementation_details.md)** - See code changes and testing
-4. **Refer to source code** in `elysia/tools/mcp/`
+1. **Study [Interaction Model](interaction_model.md)** - Understand the gateway pattern
+2. **Study [Architecture](architecture.md)** - Understand the implementation
+3. **Review [API Integration](api_integration.md)** - See the complete flow
+4. **Read [Implementation Details](implementation_details.md)** - See code changes and testing
+5. **Refer to source code** in `elysia/tools/mcp/`
+
+## Key Concepts
+
+### Operating Modes (NEW)
+
+Elysia supports two modes for MCP integration controlled by `MCP_AS_AGENT` environment variable:
+
+1. **Agent Mode** (`MCP_AS_AGENT=True`) - Default
+   - Natural language interface  
+   - One AI agent tool per MCP server
+   - Autonomous task execution via ReAct agent
+   - Example: `tree("Search for ML papers and analyze them")`
+
+2. **Individual Tool Mode** (`MCP_AS_AGENT=False`)
+   - Structured parameter interface
+   - One Elysia tool per MCP server tool
+   - Direct tool invocation
+   - Example: `tree.tools["mcp_server_search"](inputs={...})`
+
+See [MCP_AS_AGENT Configuration](mcp_as_agent.md) for complete details.
+
+### Gateway Pattern
+
+Each `MCPTool` represents **one MCP server** that provides access to **multiple tools**:
+
+- **Not**: Each MCP tool as a separate Elysia tool ❌
+- **Yes**: One MCPTool per MCP server, exposing tools via actions ✅
+
+See [Interaction Model](interaction_model.md) for detailed explanation.
+
+### Two-Phase Operation
+
+1. **Discovery**: `action='list'` - Discover available tools and their schemas
+2. **Execution**: `action='execute'` - Execute a specific tool by name
+
+### Parameter Surfacing
+
+- **Level 1 (Elysia)**: `action`, `tool_name`, `tool_inputs` (always visible)
+- **Level 2 (MCP)**: Each tool's specific parameters (discovered dynamically)
 
 ## Key Features
 

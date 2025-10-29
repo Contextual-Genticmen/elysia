@@ -1,0 +1,11 @@
+graph TB
+    Tree[Elysia Tree] --> Tool1[mcp_server_tool1]
+    Tree --> Tool2[mcp_server_tool2]
+    Tree --> Tool3[mcp_server_tool3]
+    
+    Tool1 -->|SSE/HTTP| Server[Running MCP Server]
+    Tool2 -->|SSE/HTTP| Server
+    Tool3 -->|SSE/HTTP| Server
+    
+    style Tree fill:#2E86C1,color:#fff
+    style Server fill:#E74C3C,color:#fff

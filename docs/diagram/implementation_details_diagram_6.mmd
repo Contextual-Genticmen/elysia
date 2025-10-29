@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant Agent
+    participant MCPTool
+    participant MCPServer
+    
+    Agent->>MCPTool: action='list'
+    activate MCPTool
+    MCPTool->>MCPServer: Connect & discover
+    MCPServer-->>MCPTool: [search, analyze, summarize]
+    MCPTool-->>Agent: Result([{name: 'search', ...}, ...])
+    deactivate MCPTool
+    
+    Note over Agent: Agent sees available tools<br/>and their input schemas
+    
+    Agent->>MCPTool: action='execute'<br/>tool_name='search'<br/>tool_inputs={query: "ML"}
+    activate MCPTool
+    MCPTool->>MCPServer: Execute 'search' tool
+    MCPServer-->>MCPTool: Search results
+    MCPTool-->>Agent: Text("Found 3 documents...")
+    deactivate MCPTool
+

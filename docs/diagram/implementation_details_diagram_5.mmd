@@ -1,0 +1,33 @@
+classDiagram
+    class MCPTool {
+        +name: str = "mcp_server_name"
+        +description: str = "MCP server '...' provides access to multiple tools"
+        +status: str = "Ready to connect"
+        +inputs: dict
+        +end: bool = False
+        
+        +initialize() bool
+        +__call__(inputs) AsyncGenerator
+        +get_tool_by_name(name) Tool
+        +is_tool_available() bool
+    }
+    
+    class ToolInputs {
+        action: str = "list|execute"
+        tool_name: Optional~str~
+        tool_inputs: Optional~dict~
+    }
+    
+    class ToolOutputs {
+        Status: "Initializing..."
+        Result: List~dict~
+        Text: str
+        Error: str
+    }
+    
+    MCPTool --> ToolInputs : expects
+    MCPTool --> ToolOutputs : yields
+    
+    note for MCPTool "Single gateway to multiple MCP tools<br/>Agent sees ONE tool per MCP server"
+    note for ToolInputs "action='list': Discover tools<br/>action='execute': Run specific tool"
+

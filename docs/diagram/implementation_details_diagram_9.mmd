@@ -1,0 +1,45 @@
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant A as Agent/Tree
+    participant D as DecisionPrompt
+    participant M as MCPTool
+    participant L as LangChain
+    participant S as MCP Server
+    
+    U->>A: "Find ML papers and analyze sentiment"
+    
+    Note over A,D: Decision Phase
+    A->>D: Build DecisionPrompt with available_actions
+    D->>D: available_actions includes:<br/>{name: "mcp_api_ai_mcp"<br/>inputs: {action, tool_name, tool_inputs}}
+    D->>A: Select "mcp_api_ai_mcp" + inputs
+    
+    Note over A,M: Discovery Phase
+    A->>M: __call__(action='list')
+    M->>M: initialize() if needed
+    M->>L: Connect to MCP server
+    L->>S: Discover available tools
+    S-->>L: [search_tool, analyze_tool, ...]
+    L-->>M: LangChain tool objects with schemas
+    M-->>A: Result([{name: "search", inputs: {...}}, ...])
+    
+    Note over A: Agent now knows MCP tools<br/>and their schemas
+    
+    Note over A,M: Execution Phase 1: Search
+    A->>M: __call__(action='execute',<br/>tool_name='search',<br/>tool_inputs={query: "ML papers"})
+    M->>L: langchain_tool.ainvoke({query: "ML papers"})
+    L->>S: Execute search_tool
+    S-->>L: ["Paper 1", "Paper 2", ...]
+    L-->>M: Result data
+    M-->>A: Text("Found 3 ML papers...")
+    
+    Note over A,M: Execution Phase 2: Analyze
+    A->>M: __call__(action='execute',<br/>tool_name='analyze',<br/>tool_inputs={text: "Paper 1 content"})
+    M->>L: langchain_tool.ainvoke({text: "..."})
+    L->>S: Execute analyze_tool
+    S-->>L: {sentiment: 0.85, ...}
+    L-->>M: Analysis result
+    M-->>A: Result([{sentiment: 0.85}])
+    
+    A-->>U: "Found 3 papers. Sentiment analysis shows positive..."
+

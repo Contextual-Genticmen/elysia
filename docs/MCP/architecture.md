@@ -30,63 +30,15 @@ response, objects = tree("Use the search tool...")
 
 ## System Architecture
 
-```mermaid
-graph TB
-    subgraph "Elysia Tree"
-        Tree[Tree Instance]
-        Branch[Branch: 'base']
-        DecisionNode[Decision Node]
-    end
+![MCP Architecture](../diagram/mcp_architecture.mmd)
 
-    subgraph "Elysia MCP Integration"
-        Adapter[MCPServerAdapter]
-        Wrapper1[MCPToolWrapper<br/>'search']
-        Wrapper2[MCPToolWrapper<br/>'analyze']
-        Wrapper3[MCPToolWrapper<br/>'summarize']
-    end
+> **View**: [MCP Architecture Diagram Source](../diagram/mcp_architecture.mmd)
 
-    subgraph "LangChain Layer"
-        LMCPAdapters[langchain-mcp-adapters<br/>load_mcp_tools]
-        LCTool1[LangChain Tool: search]
-        LCTool2[LangChain Tool: analyze]
-        LCTool3[LangChain Tool: summarize]
-    end
-
-    subgraph "MCP Server"
-        MCPServer[MCP Server Script<br/>your_server.py]
-    end
-
-    Tree --> Branch
-    Branch --> DecisionNode
-    DecisionNode --> Wrapper1
-    DecisionNode --> Wrapper2
-    DecisionNode --> Wrapper3
-
-    Adapter -.creates.-> Wrapper1
-    Adapter -.creates.-> Wrapper2
-    Adapter -.creates.-> Wrapper3
-
-    Adapter --> LMCPAdapters
-    LMCPAdapters --> MCPServer
-
-    LMCPAdapters -.returns.-> LCTool1
-    LMCPAdapters -.returns.-> LCTool2
-    LMCPAdapters -.returns.-> LCTool3
-
-    Wrapper1 -.wraps.-> LCTool1
-    Wrapper2 -.wraps.-> LCTool2
-    Wrapper3 -.wraps.-> LCTool3
-
-    style Adapter fill:#4A90E2,stroke:#2E5C8A,color:#fff
-    style Wrapper1 fill:#50C878,stroke:#2E7D4E,color:#fff
-    style Wrapper2 fill:#50C878,stroke:#2E7D4E,color:#fff
-    style Wrapper3 fill:#50C878,stroke:#2E7D4E,color:#fff
-    style LMCPAdapters fill:#F39C12,stroke:#D68910,color:#fff
-    style MCPServer fill:#E74C3C,stroke:#C0392B,color:#fff
-
-    classDef elysiaClass fill:#9B59B6,stroke:#7D3C98,color:#fff
-    class Tree,Branch,DecisionNode elysiaClass
-```
+**Key Components:**
+- **MCPTool Gateway**: One instance per MCP server, acts as single entry point
+- **LangChain Adapter**: Handles MCP protocol communication
+- **MCP Server**: Your custom server (stdio) or remote service (SSE)
+- **Individual Tools**: Discovered dynamically from MCP server
 
 ---
 
