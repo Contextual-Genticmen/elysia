@@ -1,0 +1,18 @@
+flowchart TD
+    Start([Application Startup]) --> LoadMCP[elysia/tools/mcp/mcp_loader.py<br/>Reads mcp.json<br/>Creates MCP classes]
+    LoadMCP --> TreeInit[Tree Initialization<br/>branch_initialisation='one_branch']
+    TreeInit --> SetBranch[set_branch_initialisation]
+    SetBranch --> LoadDefault[load_default_tools_for_mode ✨<br/>Adds: Query, Aggregate, etc.]
+    LoadDefault --> AutoDiscover[🆕 Auto-discover MCP tools]
+    AutoDiscover --> SearchMCP[discover_tools_from_module<br/>Searches: elysia.tools.mcp.mcp_loader]
+    SearchMCP --> FoundMCP[✅ FINDS: MCP_api_ai_mcp]
+    FoundMCP --> AddTool[tree.add_tool MCP_api_ai_mcp]
+    AddTool --> UpdateNode[tree.decision_nodes base.options<br/>mcp_api_ai_mcp added]
+    UpdateNode --> BuildTree[tree._construct_tree<br/>MCP TOOLS IN STRUCTURE]
+    BuildTree --> Frontend[Frontend GET /tree/user/conversation<br/>✅ MCP tools VISIBLE in UI]
+    
+    style FoundMCP fill:#ccffcc,stroke:#00cc00
+    style Frontend fill:#ccffcc,stroke:#00cc00
+    style BuildTree fill:#eeffcc,stroke:#66cc00
+    style AutoDiscover fill:#cceeff,stroke:#0066cc
+

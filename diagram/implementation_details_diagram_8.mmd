@@ -1,0 +1,38 @@
+flowchart LR
+    subgraph "1. Configuration"
+        JSON[mcp.json<br/>server_script_path<br/>url, headers, etc.]
+    end
+    
+    subgraph "2. Tool Creation"
+        Loader[mcp_loader.py<br/>Creates MCPTool class]
+        Instance[MCPTool instance<br/>with config params]
+    end
+    
+    subgraph "3. Tree Registration"
+        Discovery[Tool Discovery<br/>discover_tools_from_module]
+        TreeAdd[tree.add_tool<br/>MCPTool instance]
+    end
+    
+    subgraph "4. Agent Decision"
+        Schema[DecisionPrompt<br/>available_actions with inputs]
+        AgentChoice[Agent selects tool<br/>+ provides inputs]
+    end
+    
+    subgraph "5. Execution"
+        Call[MCPTool.__call__<br/>action, tool_name, tool_inputs]
+        MCPExec[MCP Server execution]
+    end
+    
+    JSON --> Loader
+    Loader --> Instance
+    Instance --> Discovery
+    Discovery --> TreeAdd
+    TreeAdd --> Schema
+    Schema --> AgentChoice
+    AgentChoice --> Call
+    Call --> MCPExec
+    
+    style JSON fill:#e1f5ff
+    style Schema fill:#fff4e6
+    style MCPExec fill:#e8f5e9
+

@@ -1,0 +1,3341 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../technical_overview/">
+      
+      
+        <link rel="next" href="../local_models/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
+    
+    
+      
+        <title>MCTS Implementation Study - Elysia API</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+      
+        <meta  property="og:type"  content="website" >
+      
+        <meta  property="og:title"  content="MCTS Implementation Study - Elysia API" >
+      
+        <meta  property="og:description"  content="None" >
+      
+        <meta  property="og:image"  content="./assets/images/social/Advanced/ELYSIA_MCTS.png" >
+      
+        <meta  property="og:image:type"  content="image/png" >
+      
+        <meta  property="og:image:width"  content="1200" >
+      
+        <meta  property="og:image:height"  content="630" >
+      
+        <meta  property="og:url"  content="None" >
+      
+        <meta  name="twitter:card"  content="summary_large_image" >
+      
+        <meta  name="twitter:title"  content="MCTS Implementation Study - Elysia API" >
+      
+        <meta  name="twitter:description"  content="None" >
+      
+        <meta  name="twitter:image"  content="./assets/images/social/Advanced/ELYSIA_MCTS.png" >
+      
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#elysia-mcts-optimization-caveats-for-agentic-ai-engineers" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Elysia API" class="md-header__button md-logo" aria-label="Elysia API" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Elysia API
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              MCTS Implementation Study
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6m0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4M7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="lime"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../setting_up/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Setting Up
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../basic/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Basic Usage
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../advanced_usage/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Customising Elysia
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../creating_tools/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Creating a Tool
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Advanced
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../MCP/" class="md-tabs__link">
+          
+  
+  
+  MCP Integration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../API/" class="md-tabs__link">
+          
+  
+  
+  API
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../Examples/" class="md-tabs__link">
+          
+  
+  
+  Examples
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../Reference/Preprocessor/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Elysia API" class="md-nav__button md-logo" aria-label="Elysia API" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Elysia API
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setting_up/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Setting Up
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Basic Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Customising Elysia
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../creating_tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Creating a Tool
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Advanced
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../technical_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Technical Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    MCTS Implementation Study
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCTS Implementation Study
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#two-optimization-layers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Two optimization layers
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#elysia-layer-tree-structure-prompt-engineering-for-quantitative-customization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Elysia Layer: Tree Structure &amp; Prompt Engineering for Quantitative Customization
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Elysia Layer: Tree Structure &amp; Prompt Engineering for Quantitative Customization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-exploration-horizon-via-_get_successive_actions-structure-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Exploration horizon via _get_successive_actions (structure-only)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-prompt-template-engineering-decisionprompt-for-explainable-quantitative-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Prompt template engineering: DecisionPrompt for explainable, quantitative decisions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-context-injection-control-elysiachainofthought-for-token-efficiency" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Context injection control: ElysiaChainOfThought for token efficiency
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-tool-availability-gating-for-conditional-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Tool availability gating for conditional workflows
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dspy-layer-optimizer-lm-switching" class="md-nav__link">
+    <span class="md-ellipsis">
+      DSPy Layer: Optimizer &amp; LM Switching
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DSPy Layer: Optimizer &amp; LM Switching">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-few-shot-compilation-with-labeledfewshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Few-shot compilation with LabeledFewShot
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-feedback-retrieval-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Feedback retrieval behavior
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-assertion-retry-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Assertion &amp; retry logic
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quantitative-optimization-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quantitative Optimization Checklist
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quantitative Optimization Checklist">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tree-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tree structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prompt-engineering" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prompt engineering
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#context-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Context injection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dspy-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      DSPy optimization
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Observability
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mcts-architecture-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      MCTS Architecture Diagram
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MCTS Architecture Diagram">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#diagram-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Diagram Components
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Diagram Components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dspy-framework-components-blue" class="md-nav__link">
+    <span class="md-ellipsis">
+      DSPy Framework Components (Blue)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#feedback-quality-mechanisms-orange" class="md-nav__link">
+    <span class="md-ellipsis">
+      Feedback &amp; Quality Mechanisms (Orange)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filtering-retrieval-gray" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filtering &amp; Retrieval (Gray)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summary-aggregation-green" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary &amp; Aggregation (Green)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#training-storage-pink" class="md-nav__link">
+    <span class="md-ellipsis">
+      Training &amp; Storage (Pink)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-mcts-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core MCTS Components
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Core MCTS Components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-selectionchoice-mechanism" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Selection/Choice Mechanism
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-exploration-factor" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Exploration Factor
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-evaluation-mechanism" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Evaluation Mechanism
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-back-propagationfeedback-mechanism" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Back Propagation/Feedback Mechanism
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Back Propagation/Feedback Mechanism">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-training-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      A. Training Updates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-feedback-retrieval" class="md-nav__link">
+    <span class="md-ellipsis">
+      B. Feedback Retrieval
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c-contextual-feedback-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      C. Contextual Feedback Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#d-few-shot-learning-with-dspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      D. Few-Shot Learning with DSPy
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dspy-optimization-framework-in-elysia" class="md-nav__link">
+    <span class="md-ellipsis">
+      DSPy Optimization Framework in Elysia
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DSPy Optimization Framework in Elysia">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-optimization-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core Optimization Strategy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#primary-optimizer-labeledfewshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      Primary Optimizer: LabeledFewShot
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-optimization-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Optimization Techniques
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Optimization Techniques">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-multi-model-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Multi-Model Optimization
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-contextual-example-weighting" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Contextual Example Weighting
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-dynamic-optimization-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Dynamic Optimization Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optimization-limitations-and-drawbacks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Optimization Limitations and Drawbacks
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Optimization Limitations and Drawbacks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-fixed-sample-size-constraint" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Fixed Sample Size Constraint
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-random-sampling-bias" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Random Sampling Bias
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-static-optimization-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Static Optimization Approach
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-limited-generalization-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Limited Generalization Capabilities
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-memory-and-computational-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Memory and Computational Constraints
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#proposed-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Proposed Improvements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Proposed Improvements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-adaptive-sample-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Adaptive Sample Size
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-quality-based-example-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Quality-Based Example Selection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-dynamic-optimization-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Dynamic Optimization Strategy
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#integration-with-mcts-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      Integration with MCTS Process
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alternative-dspy-optimizers-for-enhanced-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      Alternative DSPy Optimizers for Enhanced Learning
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Alternative DSPy Optimizers for Enhanced Learning">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-bootstrapfewshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. BootstrapFewShot
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-miprov2" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. MIPROv2
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-copro" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. COPRO
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-bootstrapfinetune" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. BootstrapFinetune
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-gepa-generative-prompt-evolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. GEPA (Generative Prompt Evolution)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparative-analysis-of-optimization-strategies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparative Analysis of Optimization Strategies
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mcts-process-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      MCTS Process Flow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MCTS Process Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-tree-initialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Tree Initialization
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-main-execution-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Main Execution Loop
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-feedback-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Feedback Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#control-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Control Parameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Control Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-choice-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Choice Control
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-exploration-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Exploration Control
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-evaluation-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Evaluation Control
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-back-propagation-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Back Propagation Control
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dspy-framework-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      DSPy Framework Integration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DSPy Framework Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-dspy-components-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core DSPy Components Used:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-dspy-modules-in-elysia" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key DSPy Modules in Elysia:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-decision-making" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Decision Making
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enabling-feedback-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      Enabling Feedback Learning
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-assertion-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Assertion Functions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusion
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../local_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Local Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ELYSIA_MCTS.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCTS Implementation Study
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced_tool_construction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tool Construction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tool_discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tool Discovery & Initialization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom_objects/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Custom Objects
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    MCP Integration
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            MCP Integration
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../MCP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../MCP/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../MCP/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../MCP/api_integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../MCP/usage_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Usage Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../MCP/implementation_details/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Details
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../MCP/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/user_and_tree_managers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    User Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/payload_formats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Payload Formats
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Index
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/query_weaviate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Querying Weaviate
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/data_analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Basic Linear Regression
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/Preprocessor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Preprocessor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/Tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tree
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/Client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    WeaviateClient
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/Managers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Managers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/Settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Settings
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/Objects/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Objects
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/PayloadTypes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Payload Types
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/Util/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Util
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="elysia-mcts-optimization-caveats-for-agentic-ai-engineers">Elysia MCTS: Optimization Caveats for Agentic AI Engineers</h1>
+<p><strong>Purpose</strong>: Actionable guidance for optimizing execution trees at the <strong>DSPy optimizer level</strong> (few-shot compilation, LM switching) and <strong>Elysia level</strong> (tree structure, context injection, prompt engineering). Concise, grounded snippets only.</p>
+<h2 id="two-optimization-layers">Two optimization layers</h2>
+<ol>
+<li><strong>DSPy layer</strong>: Example retrieval/compilation (<code>LabeledFewShot</code>, <code>k=10</code>), LM selection (<code>base_lm</code> vs <code>complex_lm</code>), fallback behavior</li>
+<li><strong>Elysia layer</strong>: Tree structure (<code>_get_successive_actions</code>), prompt templates (<code>DecisionPrompt</code>), context injection (<code>ElysiaChainOfThought</code>), tool gating (<code>is_tool_available</code>), termination logic</li>
+</ol>
+<hr />
+<h2 id="elysia-layer-tree-structure-prompt-engineering-for-quantitative-customization">Elysia Layer: Tree Structure &amp; Prompt Engineering for Quantitative Customization</h2>
+<h3 id="1-exploration-horizon-via-_get_successive_actions-structure-only">1. Exploration horizon via <code>_get_successive_actions</code> (structure-only)</h3>
+<p><strong>Location</strong>: <code>elysia/tree/tree.py</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_get_successive_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">successive_actions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">current_options</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="n">current_options</span><span class="p">:</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n">successive_actions</span><span class="p">[</span><span class="n">branch</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="k">if</span> <span class="n">current_options</span><span class="p">[</span><span class="n">branch</span><span class="p">][</span><span class="s2">&quot;options&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="p">{}:</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>            <span class="n">successive_actions</span><span class="p">[</span><span class="n">branch</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_successive_actions</span><span class="p">(</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>                <span class="n">successive_actions</span><span class="p">[</span><span class="n">branch</span><span class="p">],</span> <span class="n">current_options</span><span class="p">[</span><span class="n">branch</span><span class="p">][</span><span class="s2">&quot;options&quot;</span><span class="p">]</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>            <span class="p">)</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="k">return</span> <span class="n">successive_actions</span>
+</code></pre></div>
+<p><strong>What it does</strong>: Recursively maps the tree shape (branch → sub-branches) and injects it into <code>DecisionPrompt.successive_actions</code> as context.</p>
+<p><strong>Caveats for quantitative optimization</strong>:
+- <strong>No intrinsic scoring</strong>: This is pure structure—no UCB, visit counts, or value estimates. The LLM sees only the topology.
+- <strong>Token cost scales with depth</strong>: Deep/wide trees inflate prompt size without adding decision signal.
+- <strong>Customization lever</strong>: Modify tree construction (<code>.add_branch()</code>, <code>.add_tool()</code>) to encode domain-specific structure. Example: for aggregation-heavy domains, create a shallow "aggregate" branch with many leaf tools; for exploration-heavy domains, create deeper chains with conditional gating.</p>
+<p><strong>Domain-specific structural prompting</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Example: Quantitative finance domain</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">tree</span><span class="o">.</span><span class="n">add_branch</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">branch_id</span><span class="o">=</span><span class="s2">&quot;base&quot;</span><span class="p">,</span> <span class="n">instruction</span><span class="o">=</span><span class="s2">&quot;Choose: data retrieval, quantitative analysis, or reporting&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">tree</span><span class="o">.</span><span class="n">add_branch</span><span class="p">(</span><span class="n">branch_id</span><span class="o">=</span><span class="s2">&quot;quant_analysis&quot;</span><span class="p">,</span> <span class="n">from_branch_id</span><span class="o">=</span><span class="s2">&quot;base&quot;</span><span class="p">,</span> 
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">instruction</span><span class="o">=</span><span class="s2">&quot;Select statistical method: correlation, regression, time-series, or risk metrics&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">tree</span><span class="o">.</span><span class="n">add_tool</span><span class="p">(</span><span class="n">branch_id</span><span class="o">=</span><span class="s2">&quot;quant_analysis&quot;</span><span class="p">,</span> <span class="n">tool</span><span class="o">=</span><span class="n">CorrelationTool</span><span class="p">)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">tree</span><span class="o">.</span><span class="n">add_tool</span><span class="p">(</span><span class="n">branch_id</span><span class="o">=</span><span class="s2">&quot;quant_analysis&quot;</span><span class="p">,</span> <span class="n">tool</span><span class="o">=</span><span class="n">RegressionTool</span><span class="p">)</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Result: successive_actions shows {&quot;quant_analysis&quot;: {&quot;correlation&quot;: {}, &quot;regression&quot;: {}}} </span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1"># → LLM sees quantitative structure explicitly</span>
+</code></pre></div></p>
+<h3 id="2-prompt-template-engineering-decisionprompt-for-explainable-quantitative-decisions">2. Prompt template engineering: <code>DecisionPrompt</code> for explainable, quantitative decisions</h3>
+<p><strong>Location</strong>: <code>elysia/tree/prompt_templates.py</code> (<a href="https://github.com/Contextual-Genticmen/elysia/blob/main/elysia/tree/prompt_templates.py#L5-L130">L5-L144</a>)</p>
+<p><strong>Key input fields for customization</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">DecisionPrompt</span><span class="p">(</span><span class="n">dspy</span><span class="o">.</span><span class="n">Signature</span><span class="p">):</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">instruction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">InputField</span><span class="p">(</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Specific guidance for this decision point that must be followed&quot;</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="p">)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">tree_count</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">InputField</span><span class="p">(</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Current attempt number as &#39;X/Y&#39; where X=current, Y=max. Consider ending as X approaches Y.&quot;</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="p">)</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">available_actions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">InputField</span><span class="p">(</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;List of possible actions: {name: {function_name, description, inputs}}&quot;</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="p">)</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">unavailable_actions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">InputField</span><span class="p">(</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Actions unavailable now: {name: {function_name, available_at}}&quot;</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>    <span class="p">)</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>    <span class="n">successive_actions</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">InputField</span><span class="p">(</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Actions that stem from current actions (nested dict structure)&quot;</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>    <span class="p">)</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>    <span class="n">previous_errors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">InputField</span><span class="p">(</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Errors from previous actions, organized by function_name&quot;</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>    <span class="p">)</span>
+</code></pre></div>
+<p><strong>Quantitative customization strategies</strong>:</p>
+<ol>
+<li>
+<p><strong>Inject scoring/metrics into <code>instruction</code></strong>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">decision_node</span> <span class="o">=</span> <span class="n">DecisionNode</span><span class="p">(</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="n">instruction</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Choose action with highest expected information gain.</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="s2">    Priority: aggregate (cost=1, gain=high) &gt; query (cost=3, gain=medium) &gt; text (cost=0, gain=low).</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="s2">    Current budget: 5 units.&quot;&quot;&quot;</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="p">)</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Encode tool metadata in <code>available_actions</code> descriptions</strong>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">tool</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Correlation analysis tool. </span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="s2">Complexity: O(n²). Typical runtime: 2s for n=1000. </span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="s2">Output: correlation matrix + p-values. </span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="s2">Best for: identifying linear relationships in numerical data.&quot;&quot;&quot;</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Use <code>tree_count</code> for adaptive strategies</strong>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># In DecisionPrompt docstring or instruction:</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="sd">&quot;&quot;&quot;If tree_count shows X/Y where X &gt; Y*0.8, prioritize low-cost actions or termination.&quot;&quot;&quot;</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Leverage <code>unavailable_actions.available_at</code> for conditional logic</strong>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># In tool&#39;s is_tool_available() docstring:</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="sd">&quot;&quot;&quot;Available after: 1) data retrieved, 2) schema validated, 3) min 100 rows present.&quot;&quot;&quot;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># → LLM sees explicit prerequisites for quantitative workflows</span>
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Output fields for explainability</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">function_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">OutputField</span><span class="p">(</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Select exactly one function name from available_actions...&quot;</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="p">)</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">function_inputs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">OutputField</span><span class="p">(</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Inputs for selected function. Must match available_actions[function_name][&#39;inputs&#39;].&quot;</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="p">)</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="n">end_actions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">OutputField</span><span class="p">(</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Has end_goal been achieved? Set True to terminate after this action.&quot;</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="p">)</span>
+</code></pre></div>
+<p><strong>Caveat</strong>: <code>DecisionPrompt</code> has no built-in <code>reasoning</code> or <code>confidence</code> output by default. To add explainability:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Modify ElysiaChainOfThought initialization:</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">decision_module</span> <span class="o">=</span> <span class="n">ElysiaChainOfThought</span><span class="p">(</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>    <span class="n">DecisionPrompt</span><span class="p">,</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="n">tree_data</span><span class="o">=</span><span class="n">tree_data</span><span class="p">,</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="n">reasoning</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># ← Adds reasoning: str output field</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>    <span class="o">...</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="p">)</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="c1"># Now output.reasoning contains step-by-step justification</span>
+</code></pre></div>
+<h3 id="3-context-injection-control-elysiachainofthought-for-token-efficiency">3. Context injection control: <code>ElysiaChainOfThought</code> for token efficiency</h3>
+<p><strong>Location</strong>: <code>elysia/util/elysia_chain_of_thought.py</code></p>
+<p><strong>Optional context inputs</strong> (turn on deliberately):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">ElysiaChainOfThought</span><span class="p">(</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    <span class="n">signature</span><span class="o">=</span><span class="n">DecisionPrompt</span><span class="p">,</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    <span class="n">tree_data</span><span class="o">=</span><span class="n">tree_data</span><span class="p">,</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="n">environment</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>           <span class="c1"># ← Retrieved objects from prior actions</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="n">collection_schemas</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>    <span class="c1"># ← DB schemas (EXPENSIVE)</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="n">tasks_completed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>       <span class="c1"># ← Chain-of-thought history</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>    <span class="n">reasoning</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>             <span class="c1"># ← Step-by-step output</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>    <span class="n">message_update</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>        <span class="c1"># ← User-facing status</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="p">)</span>
+</code></pre></div>
+<p><strong>Token control strategies</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Narrow schemas to specific collections:</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">ElysiaChainOfThought</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">collection_schemas</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">collection_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;trades&quot;</span><span class="p">,</span> <span class="s2">&quot;prices&quot;</span><span class="p">])</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Implementation (elysia_chain_of_thought.py L328-338):</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">collection_schemas</span><span class="p">:</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">collection_names</span> <span class="o">!=</span> <span class="p">[]:</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;collection_schemas&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree_data</span><span class="o">.</span><span class="n">output_collection_metadata</span><span class="p">(</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>            <span class="n">collection_names</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">collection_names</span><span class="p">,</span> <span class="n">with_mappings</span><span class="o">=</span><span class="kc">False</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>        <span class="p">)</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;collection_schemas&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree_data</span><span class="o">.</span><span class="n">output_collection_metadata</span><span class="p">(</span><span class="n">with_mappings</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Quantitative domain example</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># For financial analysis: only inject schemas when choosing data tools</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="k">if</span> <span class="n">current_branch</span> <span class="o">==</span> <span class="s2">&quot;data_retrieval&quot;</span><span class="p">:</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    <span class="n">decision_module</span> <span class="o">=</span> <span class="n">ElysiaChainOfThought</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">collection_schemas</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">collection_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;market_data&quot;</span><span class="p">])</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="n">decision_module</span> <span class="o">=</span> <span class="n">ElysiaChainOfThought</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">collection_schemas</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># Save tokens</span>
+</code></pre></div></p>
+<h3 id="4-tool-availability-gating-for-conditional-workflows">4. Tool availability gating for conditional workflows</h3>
+<p><strong>Location</strong>: <code>elysia/tree/tree.py</code>, <code>Tree._get_available_tools()</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_get_available_tools</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_decision_node</span><span class="p">,</span> <span class="n">client_manager</span><span class="p">):</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>    <span class="n">available_tools</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>    <span class="n">unavailable_tools</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>    <span class="k">for</span> <span class="n">tool</span> <span class="ow">in</span> <span class="n">current_decision_node</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>        <span class="k">if</span> <span class="s2">&quot;is_tool_available&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">[</span><span class="n">tool</span><span class="p">])</span> <span class="ow">and</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">[</span><span class="n">tool</span><span class="p">]</span><span class="o">.</span><span class="n">is_tool_available</span><span class="p">(</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>            <span class="n">tree_data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tree_data</span><span class="p">,</span> <span class="n">base_lm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_lm</span><span class="p">,</span> <span class="n">complex_lm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">complex_lm</span><span class="p">,</span> <span class="n">client_manager</span><span class="o">=</span><span class="n">client_manager</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>        <span class="p">):</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>            <span class="n">available_tools</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tool</span><span class="p">)</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>            <span class="n">is_tool_available_doc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">[</span><span class="n">tool</span><span class="p">]</span><span class="o">.</span><span class="n">is_tool_available</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="o">...</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>            <span class="n">unavailable_tools</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">tool</span><span class="p">,</span> <span class="n">is_tool_available_doc</span><span class="p">))</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>    <span class="k">return</span> <span class="n">available_tools</span><span class="p">,</span> <span class="n">unavailable_tools</span>
+</code></pre></div>
+<p><strong>Quantitative gating example</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">RegressionTool</span><span class="p">(</span><span class="n">Tool</span><span class="p">):</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">is_tool_available</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Available when: min 30 data points, 2+ numerical columns, no missing values &gt; 10%.&quot;&quot;&quot;</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>        <span class="k">if</span> <span class="s2">&quot;data&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tree_data</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">environment</span><span class="p">:</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>            <span class="k">return</span> <span class="kc">False</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>        <span class="n">data</span> <span class="o">=</span> <span class="n">tree_data</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">environment</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">objects</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">30</span> <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;numerical_cols&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span>
+</code></pre></div>
+<p><strong>Caveat</strong>: The docstring is surfaced to the LLM as <code>unavailable_actions[tool]["available_at"]</code>. Make it actionable:
+- ❌ Bad: <code>"Not available yet"</code>
+- ✅ Good: <code>"Available after retrieving ≥30 rows with ≥2 numerical columns"</code></p>
+<hr />
+<h2 id="dspy-layer-optimizer-lm-switching">DSPy Layer: Optimizer &amp; LM Switching</h2>
+<h3 id="1-few-shot-compilation-with-labeledfewshot">1. Few-shot compilation with <code>LabeledFewShot</code></h3>
+<p><strong>Location</strong>: <code>elysia/util/elysia_chain_of_thought.py</code>, <code>aforward_with_feedback_examples()</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">examples</span><span class="p">,</span> <span class="n">uuids</span> <span class="o">=</span> <span class="k">await</span> <span class="n">retrieve_feedback</span><span class="p">(</span><span class="n">client_manager</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree_data</span><span class="o">.</span><span class="n">user_prompt</span><span class="p">,</span> <span class="n">feedback_model</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">examples</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">LabeledFewShot</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># ← Fixed k=10</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    <span class="n">optimized_module</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trainset</span><span class="o">=</span><span class="n">examples</span><span class="p">)</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">aforward</span><span class="p">(</span><span class="n">lm</span><span class="o">=</span><span class="n">complex_lm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># ← Fallback: no examples → complex LM</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="c1"># LM selection by example count:</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">examples</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">num_base_lm_examples</span><span class="p">:</span>  <span class="c1"># default 3</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>    <span class="k">return</span> <span class="k">await</span> <span class="n">optimized_module</span><span class="o">.</span><span class="n">aforward</span><span class="p">(</span><span class="n">lm</span><span class="o">=</span><span class="n">complex_lm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>    <span class="k">return</span> <span class="k">await</span> <span class="n">optimized_module</span><span class="o">.</span><span class="n">aforward</span><span class="p">(</span><span class="n">lm</span><span class="o">=</span><span class="n">base_lm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Caveats</strong>:
+- <code>k=10</code> is hardcoded; modify source to tune.
+- <code>num_base_lm_examples=3</code> threshold: &lt;3 examples → use complex LM (more capable), ≥3 → use base LM (faster/cheaper).
+- No examples → skip compilation, use complex LM.</p>
+<p><strong>Quantitative tuning</strong>:
+- For high-stakes decisions (e.g., financial trades): set <code>num_base_lm_examples=10</code> to always use complex LM.
+- For low-stakes (e.g., data filtering): set <code>num_base_lm_examples=1</code> to prefer base LM.</p>
+<h3 id="2-feedback-retrieval-behavior">2. Feedback retrieval behavior</h3>
+<p><strong>Location</strong>: <code>elysia/util/retrieve_feedback.py</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="k">if</span> <span class="ow">not</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;ELYSIA_FEEDBACK__&quot;</span><span class="p">):</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>    <span class="k">return</span> <span class="p">[],</span> <span class="p">[]</span>  <span class="c1"># ← No collection → no examples</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="n">superpositive</span> <span class="o">=</span> <span class="k">await</span> <span class="n">feedback_collection</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">near_text</span><span class="p">(</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>    <span class="n">query</span><span class="o">=</span><span class="n">user_prompt</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">Filter</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">feedback</span><span class="o">==</span><span class="mf">2.0</span><span class="p">),</span> <span class="n">certainty</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">n</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="p">)</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">superpositive</span><span class="o">.</span><span class="n">objects</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>    <span class="n">positive</span> <span class="o">=</span> <span class="k">await</span> <span class="n">feedback_collection</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">near_text</span><span class="p">(</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>        <span class="n">query</span><span class="o">=</span><span class="n">user_prompt</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">Filter</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">feedback</span><span class="o">==</span><span class="mf">1.0</span><span class="p">),</span> <span class="n">certainty</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">n</span>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>    <span class="p">)</span>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>    <span class="n">feedback_objects</span> <span class="o">=</span> <span class="n">superpositive</span><span class="o">.</span><span class="n">objects</span> <span class="o">+</span> <span class="n">positive</span><span class="o">.</span><span class="n">objects</span><span class="p">[:(</span><span class="n">n</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">superpositive</span><span class="o">.</span><span class="n">objects</span><span class="p">))]</span>
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">relevant_updates</span><span class="p">)</span>  <span class="c1"># ← Introduces variability</span>
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="n">relevant_updates</span> <span class="o">=</span> <span class="n">relevant_updates</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span>
+</code></pre></div>
+<p><strong>Caveats</strong>:
+- Requires <code>ELYSIA_FEEDBACK__</code> collection in Weaviate.
+- <code>certainty=0.7</code> threshold: lower → more examples (noisier), higher → fewer examples (stricter).
+- Random shuffle → run-to-run variability in example selection.</p>
+<p><strong>Quantitative optimization</strong>:
+- For deterministic behavior: remove <code>random.shuffle()</code> or seed it.
+- For domain-specific retrieval: add metadata filters (e.g., <code>Filter.by_property("domain").equal("finance")</code>).</p>
+<h3 id="3-assertion-retry-logic">3. Assertion &amp; retry logic</h3>
+<p><strong>Location</strong>: <code>elysia/tree/util.py</code>, <code>AssertedModule</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">AssertedModule</span><span class="p">(</span><span class="n">dspy</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">assertion</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">max_tries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">):</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertion</span> <span class="o">=</span> <span class="n">assertion</span>  <span class="c1"># (kwargs, pred) → (bool, feedback_str)</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">max_tries</span> <span class="o">=</span> <span class="n">max_tries</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">aforward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>        <span class="n">pred</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">module</span><span class="o">.</span><span class="n">acall</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>        <span class="n">num_tries</span> <span class="o">=</span> <span class="mi">0</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>        <span class="n">asserted</span><span class="p">,</span> <span class="n">feedback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertion</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">pred</span><span class="p">)</span>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>        <span class="k">while</span> <span class="ow">not</span> <span class="n">asserted</span> <span class="ow">and</span> <span class="n">num_tries</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_tries</span><span class="p">:</span>
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>            <span class="n">asserted_module</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modify_signature_on_feedback</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">feedback</span><span class="p">)</span>
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>            <span class="n">pred</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asserted_module</span><span class="o">.</span><span class="n">aforward</span><span class="p">(</span>
+<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>                <span class="n">previous_feedbacks</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">previous_feedbacks</span><span class="p">,</span>
+<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>                <span class="n">previous_attempts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">previous_attempts</span><span class="p">,</span>
+<a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>                <span class="o">**</span><span class="n">kwargs</span>
+<a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a>            <span class="p">)</span>
+<a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a>            <span class="n">asserted</span><span class="p">,</span> <span class="n">feedback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertion</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">pred</span><span class="p">)</span>
+<a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a>            <span class="n">num_tries</span> <span class="o">+=</span> <span class="mi">1</span>
+<a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a>        <span class="k">return</span> <span class="n">pred</span>
+</code></pre></div>
+<p><strong>Quantitative customization</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Example: Strict assertion for tool selection</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">_tool_assertion</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">pred</span><span class="p">):</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>    <span class="n">valid</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">function_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>    <span class="n">feedback</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Must choose from </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">valid</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>    <span class="k">return</span> <span class="n">valid</span><span class="p">,</span> <span class="n">feedback</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="n">decision_executor</span> <span class="o">=</span> <span class="n">AssertedModule</span><span class="p">(</span><span class="n">decision_module</span><span class="p">,</span> <span class="n">assertion</span><span class="o">=</span><span class="n">_tool_assertion</span><span class="p">,</span> <span class="n">max_tries</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Caveat</strong>: Keep <code>max_tries</code> low (1-3) to avoid token/cost explosion. Each retry adds previous attempts to context.</p>
+<hr />
+<h2 id="quantitative-optimization-checklist">Quantitative Optimization Checklist</h2>
+<h3 id="tree-structure">Tree structure</h3>
+<ul>
+<li>✅ Encode domain logic in branch hierarchy (shallow for aggregation, deep for sequential workflows)</li>
+<li>✅ Keep <code>_get_successive_actions</code> output shallow to minimize tokens</li>
+<li>✅ Use <code>.add_branch(instruction=...)</code> to inject quantitative guidance (costs, priorities, constraints)</li>
+</ul>
+<h3 id="prompt-engineering">Prompt engineering</h3>
+<ul>
+<li>✅ Inject scoring/metrics into <code>DecisionPrompt.instruction</code></li>
+<li>✅ Add complexity/runtime metadata to tool descriptions</li>
+<li>✅ Use <code>tree_count</code> for adaptive strategies (e.g., "if X &gt; 0.8*Y, prefer termination")</li>
+<li>✅ Write actionable <code>is_tool_available()</code> docstrings (surfaced as <code>available_at</code>)</li>
+<li>✅ Enable <code>reasoning=True</code> for explainability</li>
+</ul>
+<h3 id="context-injection">Context injection</h3>
+<ul>
+<li>✅ Enable <code>collection_schemas</code> only when needed; constrain via <code>collection_names</code></li>
+<li>✅ Use <code>tasks_completed=True</code> to avoid repeats (adds tokens but prevents loops)</li>
+<li>✅ Disable <code>environment=True</code> for stateless decisions</li>
+</ul>
+<h3 id="dspy-optimization">DSPy optimization</h3>
+<ul>
+<li>✅ Ensure <code>ELYSIA_FEEDBACK__</code> exists before enabling <code>USE_FEEDBACK</code></li>
+<li>✅ Tune <code>num_base_lm_examples</code> threshold (default 3) for cost/quality tradeoff</li>
+<li>✅ Modify <code>k=10</code> in source if domain needs more/fewer examples</li>
+<li>✅ Set <code>max_tries</code> conservatively (1-3) in <code>AssertedModule</code></li>
+<li>✅ Remove <code>random.shuffle()</code> in <code>retrieve_feedback.py</code> for determinism</li>
+</ul>
+<h3 id="observability">Observability</h3>
+<ul>
+<li>✅ Use <code>Tree.log_token_usage()</code> to measure impact of schemas/reasoning</li>
+<li>✅ Monitor <code>tree_count</code> to detect loops</li>
+<li>✅ Track <code>previous_errors</code> to identify systematic failures</li>
+</ul>
+<hr />
+<h2 id="architecture-overview">Architecture Overview</h2>
+<h2 id="mcts-architecture-diagram">MCTS Architecture Diagram</h2>
+<p>The following diagram illustrates Elysia's MCTS implementation with integrated DSPy components and feedback mechanisms:</p>
+<p><img alt="MCTS Architecture" src="diagram/mcts_architecture.png" /></p>
+<blockquote>
+<p><strong>Note</strong>: View the <a href="diagram/mcts_architecture.mmd">mermaid diagram source</a> or <a href="diagram/mcts_architecture.png">PNG version</a></p>
+</blockquote>
+<h3 id="diagram-components">Diagram Components</h3>
+<h4 id="dspy-framework-components-blue">DSPy Framework Components (Blue)</h4>
+<ul>
+<li><strong><a href="https://dspy.ai/api/modules/"><code>dspy.Module</code></a></strong>: Base class for all reasoning modules (ElysiaChainOfThought)</li>
+<li><strong><a href="https://dspy.ai/api/signatures/"><code>dspy.Signature</code></a></strong>: Defines input/output structure (DecisionPrompt)</li>
+<li><strong><a href="https://dspy.ai/api/optimizers/LabeledFewShot/"><code>dspy.LabeledFewShot</code></a></strong>: Optimizer that compiles modules with labeled examples</li>
+<li><strong><a href="https://dspy.ai/api/primitives/prediction/"><code>dspy.Prediction</code></a></strong>: Structured LLM output predictions</li>
+</ul>
+<h4 id="feedback-quality-mechanisms-orange">Feedback &amp; Quality Mechanisms (Orange)</h4>
+<ul>
+<li><strong>AssertedModule</strong>: Validates decisions with custom assertion functions, implements retry logic</li>
+<li><strong>CopiedModule</strong>: Integrates historical feedback from failed attempts into prompts</li>
+</ul>
+<h4 id="filtering-retrieval-gray">Filtering &amp; Retrieval (Gray)</h4>
+<ul>
+<li><strong>retrieve_feedback</strong>: Queries Weaviate database for similar past examples using vector similarity (threshold: 0.7)</li>
+<li>Filters examples by relevance and retrieves top-k (n=10) for few-shot learning</li>
+</ul>
+<h4 id="summary-aggregation-green">Summary &amp; Aggregation (Green)</h4>
+<ul>
+<li><strong>Aggregate Tool</strong>: Provides summary statistics (count, sum, average) on data collections</li>
+<li>Applies filters and grouping for data summarization</li>
+</ul>
+<h4 id="training-storage-pink">Training &amp; Storage (Pink)</h4>
+<ul>
+<li><strong>TrainingUpdate</strong>: Stores decision outcomes and tool results</li>
+<li><strong>Weaviate DB</strong>: Persistent storage for feedback examples and training data</li>
+</ul>
+<h2 id="core-mcts-components">Core MCTS Components</h2>
+<h3 id="1-selectionchoice-mechanism">1. Selection/Choice Mechanism</h3>
+<p><strong>Primary Module</strong>: <code>elysia.tree.util.DecisionNode</code>
+<strong>Full Path</strong>: <a href="https://github.com/supmo668/elysia/blob/main/elysia/tree/util.py#L218-L502"><code>/elysia/tree/util.py</code></a> (lines 218-502)</p>
+<p>The DecisionNode class implements the selection phase of MCTS, choosing the most promising action from available options.</p>
+<p><strong>Key Components</strong>:
+- <strong>Decision Making</strong>: Uses DSPy-based <code>ElysiaChainOfThought</code> with <code>DecisionPrompt</code> signature
+- <strong>Prompt Template</strong>: <code>elysia.tree.prompt_templates.DecisionPrompt</code> (<a href="https://github.com/supmo668/elysia/blob/main/elysia/tree/prompt_templates.py#L5-L130"><code>/elysia/tree/prompt_templates.py</code></a> lines 5-130)
+- <strong>Choice Logic</strong>: <code>__call__</code> method evaluates available tools and makes decisions</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Core decision-making process</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="n">decision_module</span> <span class="o">=</span> <span class="n">ElysiaChainOfThought</span><span class="p">(</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>    <span class="n">DecisionPrompt</span><span class="p">,</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>    <span class="n">tree_data</span><span class="o">=</span><span class="n">tree_data</span><span class="p">,</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>    <span class="n">environment</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>    <span class="n">collection_schemas</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_elysia_collections</span><span class="p">,</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>    <span class="n">tasks_completed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>    <span class="n">message_update</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>    <span class="n">reasoning</span><span class="o">=</span><span class="n">tree_data</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">BASE_USE_REASONING</span><span class="p">,</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="p">)</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="n">decision_executor</span> <span class="o">=</span> <span class="n">AssertedModule</span><span class="p">(</span>
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a>    <span class="n">decision_module</span><span class="p">,</span>
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a>    <span class="n">assertion</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tool_assertion</span><span class="p">,</span>
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>    <span class="n">max_tries</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="p">)</span>
+</code></pre></div>
+<p><strong>DSPy Module</strong>: <code>ElysiaChainOfThought</code> extends <code>dspy.Module</code>
+<strong>Full Path</strong>: <a href="https://github.com/supmo668/elysia/blob/main/elysia/util/elysia_chain_of_thought.py#L24-L421"><code>/elysia/util/elysia_chain_of_thought.py</code></a> (lines 24-421)</p>
+<h3 id="2-exploration-factor">2. Exploration Factor</h3>
+<p><strong>Primary Module</strong>: <code>elysia.tree.tree.Tree._get_successive_actions()</code>
+<strong>Full Path</strong>: <a href="https://github.com/supmo668/elysia/blob/main/elysia/tree/tree.py"><code>/elysia/tree/tree.py</code></a> (method within Tree class)</p>
+<p>The exploration mechanism evaluates future possible actions to inform current decisions.</p>
+<p><strong>Key Components</strong>:
+- <strong>Successive Actions</strong>: Maps current actions to their potential follow-up actions
+- <strong>Available Tools Evaluation</strong>: <code>_get_available_tools()</code> method determines which actions are currently possible
+- <strong>Tool Availability Rules</strong>: Each tool can implement <code>is_tool_available()</code> and <code>run_if_true()</code> methods</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># Exploration through successive actions</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="n">successive_actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_successive_actions</span><span class="p">(</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>    <span class="n">successive_actions</span><span class="o">=</span><span class="p">{},</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>    <span class="n">current_options</span><span class="o">=</span><span class="n">init_options</span><span class="p">,</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="p">)</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="c1"># Decision considers future possibilities</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="n">available_actions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">InputField</span><span class="p">(</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;List of possible actions to choose from for this task only&quot;</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="p">)</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="n">successive_actions</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">InputField</span><span class="p">(</span>
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Actions that stem from actions you can choose from&quot;</span>
+<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="p">)</span>
+</code></pre></div>
+<h3 id="3-evaluation-mechanism">3. Evaluation Mechanism</h3>
+<p><strong>Primary Module</strong>: <code>elysia.tree.util.AssertedModule</code>
+<strong>Full Path</strong>: <a href="https://github.com/supmo668/elysia/blob/main/elysia/tree/util.py#L153-L215"><code>/elysia/tree/util.py</code></a> (lines 153-215)</p>
+<p>The evaluation phase ensures decisions meet quality criteria through assertion-based feedback loops.</p>
+<p><strong>Key Components</strong>:
+- <strong>Assertion Function</strong>: Custom validation logic for each decision
+- <strong>Retry Mechanism</strong>: Automatic retry with feedback when assertions fail
+- <strong>Feedback Integration</strong>: Previous failures inform subsequent attempts</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">AssertedModule</span><span class="p">(</span><span class="n">dspy</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="sd">    A module that calls another module until it passes an assertion function.</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="sd">    This function returns a tuple of (asserted, feedback).</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="sd">    If the assertion is false, the module is called again with the previous feedbacks and attempts.</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a>
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a>        <span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a>        <span class="n">module</span><span class="p">:</span> <span class="n">ElysiaChainOfThought</span><span class="p">,</span>
+<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a>        <span class="n">assertion</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">dspy</span><span class="o">.</span><span class="n">Prediction</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>
+<a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>        <span class="n">max_tries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+<a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a>    <span class="p">):</span>
+<a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertion</span> <span class="o">=</span> <span class="n">assertion</span>
+<a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">module</span> <span class="o">=</span> <span class="n">module</span>
+<a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">max_tries</span> <span class="o">=</span> <span class="n">max_tries</span>
+<a id="__codelineno-20-17" name="__codelineno-20-17" href="#__codelineno-20-17"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">previous_feedbacks</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-20-18" name="__codelineno-20-18" href="#__codelineno-20-18"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">previous_attempts</span> <span class="o">=</span> <span class="p">[]</span>
+</code></pre></div>
+<p><strong>DSPy Integration</strong>: Uses <code>dspy.Module</code> base class with custom assertion logic</p>
+<h3 id="4-back-propagationfeedback-mechanism">4. Back Propagation/Feedback Mechanism</h3>
+<p><strong>Primary Module</strong>: <code>elysia.tree.util.CopiedModule</code>
+<strong>Full Path</strong>: <a href="https://github.com/supmo668/elysia/blob/main/elysia/tree/util.py#L77-L152"><code>/elysia/tree/util.py</code></a> (lines 77-152)</p>
+<p>The back propagation mechanism updates the system based on previous decisions and their outcomes.</p>
+<p><strong>Key Components</strong>:</p>
+<h4 id="a-training-updates">A. Training Updates</h4>
+<p><strong>Module</strong>: <code>elysia.util.objects.TrainingUpdate</code>
+<strong>Purpose</strong>: Stores decision outcomes for learning</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="n">results</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>    <span class="n">TrainingUpdate</span><span class="p">(</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>        <span class="n">module_name</span><span class="o">=</span><span class="s2">&quot;decision&quot;</span><span class="p">,</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>        <span class="n">inputs</span><span class="o">=</span><span class="n">tree_data</span><span class="o">.</span><span class="n">to_json</span><span class="p">(),</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>        <span class="n">outputs</span><span class="o">=</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s2">&quot;_store&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>    <span class="p">),</span>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>    <span class="n">Status</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="n">output</span><span class="o">.</span><span class="n">function_name</span><span class="p">][</span><span class="s2">&quot;status&quot;</span><span class="p">])),</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="p">]</span>
+</code></pre></div>
+<h4 id="b-feedback-retrieval">B. Feedback Retrieval</h4>
+<p><strong>Module</strong>: <code>elysia.util.retrieve_feedback.retrieve_feedback</code>
+<strong>Full Path</strong>: <a href="https://github.com/supmo668/elysia/blob/main/elysia/util/retrieve_feedback.py#L8-L92"><code>/elysia/util/retrieve_feedback.py</code></a> (lines 8-92)</p>
+<p>Retrieves similar examples from the feedback database for few-shot learning:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">retrieve_feedback</span><span class="p">(</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>    <span class="n">client_manager</span><span class="p">:</span> <span class="n">ClientManager</span><span class="p">,</span> 
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>    <span class="n">user_prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>    <span class="n">model</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>    <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">dspy</span><span class="o">.</span><span class="n">Example</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="sd">    Retrieve similar examples from the database.</span>
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="sd">    &quot;&quot;&quot;</span>
+</code></pre></div>
+<h4 id="c-contextual-feedback-integration">C. Contextual Feedback Integration</h4>
+<p><strong>Module</strong>: <code>elysia.tree.util.CopiedModule</code></p>
+<p>Integrates previous failed attempts into new decision attempts:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">CopiedModule</span><span class="p">(</span><span class="n">dspy</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="sd">    A module that copies another module and adds a previous_feedbacks field to the signature.</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="sd">    This is used to store the previous errored decision attempts for the decision node.</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module</span><span class="p">:</span> <span class="n">ElysiaChainOfThought</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a>        <span class="n">feedback_desc</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>            <span class="s2">&quot;Pairs of INCORRECT previous attempts at this action, and the feedback received for each attempt. &quot;</span>
+<a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a>            <span class="s2">&quot;Judge what was incorrect in the previous attempts. &quot;</span>
+<a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a>            <span class="s2">&quot;Follow the feedback to improve your next attempt.&quot;</span>
+<a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a>        <span class="p">)</span>
+</code></pre></div>
+<h4 id="d-few-shot-learning-with-dspy">D. Few-Shot Learning with DSPy</h4>
+<p><strong>Module</strong>: <code>elysia.util.elysia_chain_of_thought.ElysiaChainOfThought.aforward_with_feedback_examples</code>
+<strong>Full Path</strong>: <a href="https://github.com/supmo668/elysia/blob/main/elysia/util/elysia_chain_of_thought.py#L345-L421"><code>/elysia/util/elysia_chain_of_thought.py</code></a> (lines 345-421)</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">aforward_with_feedback_examples</span><span class="p">(</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>    <span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>    <span class="n">feedback_model</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>    <span class="n">client_manager</span><span class="p">:</span> <span class="n">ClientManager</span><span class="p">,</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>    <span class="n">base_lm</span><span class="p">:</span> <span class="n">dspy</span><span class="o">.</span><span class="n">LM</span><span class="p">,</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>    <span class="n">complex_lm</span><span class="p">:</span> <span class="n">dspy</span><span class="o">.</span><span class="n">LM</span><span class="p">,</span>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>    <span class="n">num_base_lm_examples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>    <span class="n">return_example_uuids</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">dspy</span><span class="o">.</span><span class="n">Prediction</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="n">dspy</span><span class="o">.</span><span class="n">Prediction</span><span class="p">:</span>
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a><span class="sd">    Use the forward pass of the module with feedback examples.</span>
+<a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a><span class="sd">    This will first retrieve examples from the feedback collection, </span>
+<a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a><span class="sd">    and use those as few-shot examples to run the module.</span>
+<a id="__codelineno-24-15" name="__codelineno-24-15" href="#__codelineno-24-15"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-24-16" name="__codelineno-24-16" href="#__codelineno-24-16"></a>
+<a id="__codelineno-24-17" name="__codelineno-24-17" href="#__codelineno-24-17"></a>    <span class="n">examples</span><span class="p">,</span> <span class="n">uuids</span> <span class="o">=</span> <span class="k">await</span> <span class="n">retrieve_feedback</span><span class="p">(</span>
+<a id="__codelineno-24-18" name="__codelineno-24-18" href="#__codelineno-24-18"></a>        <span class="n">client_manager</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree_data</span><span class="o">.</span><span class="n">user_prompt</span><span class="p">,</span> <span class="n">feedback_model</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">10</span>
+<a id="__codelineno-24-19" name="__codelineno-24-19" href="#__codelineno-24-19"></a>    <span class="p">)</span>
+<a id="__codelineno-24-20" name="__codelineno-24-20" href="#__codelineno-24-20"></a>
+<a id="__codelineno-24-21" name="__codelineno-24-21" href="#__codelineno-24-21"></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">examples</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-24-22" name="__codelineno-24-22" href="#__codelineno-24-22"></a>        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">LabeledFewShot</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<a id="__codelineno-24-23" name="__codelineno-24-23" href="#__codelineno-24-23"></a>        <span class="n">optimized_module</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trainset</span><span class="o">=</span><span class="n">examples</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="dspy-optimization-framework-in-elysia">DSPy Optimization Framework in Elysia</h2>
+<p>Elysia leverages DSPy's sophisticated optimization framework to continuously improve its MCTS decision-making capabilities. The optimization process operates at multiple levels, from individual decision nodes to the entire reasoning pipeline.</p>
+<h3 id="core-optimization-strategy">Core Optimization Strategy</h3>
+<p>The optimization in Elysia follows a <strong>hierarchical few-shot learning approach</strong> where:</p>
+<ol>
+<li><strong>Historical Examples</strong>: Retrieved from Weaviate feedback database based on semantic similarity</li>
+<li><strong>Dynamic Module Compilation</strong>: DSPy optimizers compile modules with retrieved examples</li>
+<li><strong>Contextual Adaptation</strong>: Modules adapt their behavior based on similar past scenarios</li>
+<li><strong>Continuous Learning</strong>: Each decision contributes to the feedback database for future optimization</li>
+</ol>
+<h3 id="primary-optimizer-labeledfewshot">Primary Optimizer: LabeledFewShot</h3>
+<p><strong>Module</strong>: <a href="https://dspy.ai/api/optimizers/LabeledFewShot/"><code>dspy.LabeledFewShot</code></a>
+<strong>Purpose</strong>: Implements few-shot learning by selecting the most relevant examples from a training set
+<strong>Key Features</strong>:
+- <strong>Fixed Sample Size</strong>: Uses exactly <code>k</code> examples (default k=10 in Elysia)
+- <strong>Random Sampling</strong>: When <code>sample=True</code>, randomly selects k examples from available training set
+- <strong>Sequential Selection</strong>: When <code>sample=False</code>, takes first k examples from training set
+- <strong>Module Compilation</strong>: Creates optimized version of the target module with selected examples</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1"># LabeledFewShot Implementation in Elysia</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="n">optimizer</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">LabeledFewShot</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="n">optimized_module</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>    <span class="n">student</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>           <span class="c1"># The ElysiaChainOfThought module to optimize</span>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>    <span class="n">trainset</span><span class="o">=</span><span class="n">examples</span><span class="p">,</span>      <span class="c1"># Retrieved feedback examples</span>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>    <span class="n">sample</span><span class="o">=</span><span class="kc">True</span>            <span class="c1"># Use random sampling for example selection</span>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="p">)</span>
+</code></pre></div>
+<p><strong>Optimization Process</strong>:
+1. <strong>Example Retrieval</strong>: <code>retrieve_feedback()</code> fetches similar examples from Weaviate
+2. <strong>Example Selection</strong>: LabeledFewShot selects k=10 most relevant examples
+3. <strong>Module Compilation</strong>: Creates new module instance with selected examples as demonstrations
+4. <strong>Execution</strong>: Optimized module uses examples as few-shot demonstrations for reasoning</p>
+<h3 id="advanced-optimization-techniques">Advanced Optimization Techniques</h3>
+<h4 id="1-multi-model-optimization">1. Multi-Model Optimization</h4>
+<p>Elysia employs different optimization strategies for different model types:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="c1"># Base LM optimization (faster, simpler reasoning)</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="n">base_optimizer</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">LabeledFewShot</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="n">base_optimized</span> <span class="o">=</span> <span class="n">base_optimizer</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">trainset</span><span class="o">=</span><span class="n">base_examples</span><span class="p">)</span>
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a>
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="c1"># Complex LM optimization (deeper reasoning)</span>
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="n">complex_optimizer</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">LabeledFewShot</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a><span class="n">complex_optimized</span> <span class="o">=</span> <span class="n">complex_optimizer</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">trainset</span><span class="o">=</span><span class="n">complex_examples</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="2-contextual-example-weighting">2. Contextual Example Weighting</h4>
+<p>The system retrieves examples based on:
+- <strong>Semantic Similarity</strong>: Weaviate vector similarity search (threshold: 0.7)
+- <strong>Task Type Matching</strong>: Examples from similar decision contexts
+- <strong>Success Patterns</strong>: Preferentially selects examples that led to successful outcomes
+- <strong>Failure Learning</strong>: Includes failed attempts to avoid repeating mistakes</p>
+<h4 id="3-dynamic-optimization-parameters">3. Dynamic Optimization Parameters</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1"># Adaptive k-value based on available examples</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="n">k_value</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">examples</span><span class="p">))</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">examples</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="n">optimizer</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">LabeledFewShot</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="n">k_value</span><span class="p">)</span>
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="c1"># Context-aware example selection</span>
+<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a><span class="k">if</span> <span class="n">task_complexity</span> <span class="o">==</span> <span class="s2">&quot;high&quot;</span><span class="p">:</span>
+<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a>    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">LabeledFewShot</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>  <span class="c1"># More examples for complex tasks</span>
+<a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a><span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a>    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">LabeledFewShot</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>   <span class="c1"># Fewer examples for simple tasks</span>
+</code></pre></div>
+<h3 id="optimization-limitations-and-drawbacks">Optimization Limitations and Drawbacks</h3>
+<h4 id="1-fixed-sample-size-constraint">1. Fixed Sample Size Constraint</h4>
+<p><strong>Primary Limitation</strong>: LabeledFewShot relies on a fixed sample size (k=10), which creates several learning and generalization challenges:</p>
+<ul>
+<li><strong>Insufficient Context for Complex Tasks</strong>: Complex reasoning tasks may require more than 10 examples to capture the full decision space</li>
+<li><strong>Overfitting to Limited Examples</strong>: With only 10 examples, the model may overfit to specific patterns rather than learning generalizable strategies</li>
+<li><strong>Inconsistent Learning</strong>: Different decision contexts may have vastly different optimal example counts, but the fixed k-value treats all scenarios uniformly</li>
+</ul>
+<h4 id="2-random-sampling-bias">2. Random Sampling Bias</h4>
+<p>When <code>sample=True</code> (default in Elysia), the optimizer randomly selects examples, which can lead to:
+- <strong>Suboptimal Example Selection</strong>: Random sampling may miss the most relevant examples for the current context
+- <strong>Inconsistent Performance</strong>: Different runs may select different examples, leading to variable decision quality
+- <strong>Loss of Temporal Patterns</strong>: Sequential examples that show decision progression are lost in random sampling</p>
+<h4 id="3-static-optimization-approach">3. Static Optimization Approach</h4>
+<p>The current implementation uses static optimization that doesn't adapt based on:
+- <strong>Task Complexity</strong>: All tasks use the same k=10 examples regardless of complexity
+- <strong>Historical Performance</strong>: No feedback loop to adjust k-value based on past optimization success
+- <strong>Context Diversity</strong>: Doesn't consider the diversity of available examples when selecting the optimal subset</p>
+<h4 id="4-limited-generalization-capabilities">4. Limited Generalization Capabilities</h4>
+<p>The fixed sample size approach has several generalization limitations:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># Current approach - fixed k=10</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="n">optimizer</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">LabeledFewShot</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># Always uses exactly 10 examples</span>
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="c1"># Problems:</span>
+<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="c1"># 1. May not be enough for complex multi-step reasoning</span>
+<a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a><span class="c1"># 2. May be too many for simple binary decisions</span>
+<a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a><span class="c1"># 3. No adaptation based on example quality or relevance</span>
+<a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a><span class="c1"># 4. No consideration of example diversity or coverage</span>
+</code></pre></div>
+<h4 id="5-memory-and-computational-constraints">5. Memory and Computational Constraints</h4>
+<ul>
+<li><strong>Storage Overhead</strong>: Storing and retrieving large numbers of examples impacts performance</li>
+<li><strong>Computational Cost</strong>: Processing more examples increases inference time</li>
+<li><strong>Cache Invalidation</strong>: Fixed sample size doesn't adapt to changing example relevance</li>
+</ul>
+<h3 id="proposed-improvements">Proposed Improvements</h3>
+<h4 id="1-adaptive-sample-size">1. Adaptive Sample Size</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="c1"># Proposed adaptive approach</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">adaptive_k_selection</span><span class="p">(</span><span class="n">examples</span><span class="p">,</span> <span class="n">task_complexity</span><span class="p">,</span> <span class="n">context_diversity</span><span class="p">):</span>
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>    <span class="n">base_k</span> <span class="o">=</span> <span class="mi">5</span>
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>    <span class="n">complexity_multiplier</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;simple&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;medium&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;complex&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>    <span class="n">diversity_bonus</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">context_diversity</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a>
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a>    <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="n">base_k</span> <span class="o">*</span> <span class="n">complexity_multiplier</span><span class="p">[</span><span class="n">task_complexity</span><span class="p">]</span> <span class="o">+</span> <span class="n">diversity_bonus</span><span class="p">)</span>
+<a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a>
+<a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a><span class="n">k_value</span> <span class="o">=</span> <span class="n">adaptive_k_selection</span><span class="p">(</span><span class="n">examples</span><span class="p">,</span> <span class="n">task_complexity</span><span class="p">,</span> <span class="n">context_diversity</span><span class="p">)</span>
+<a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a><span class="n">optimizer</span> <span class="o">=</span> <span class="n">dspy</span><span class="o">.</span><span class="n">LabeledFewShot</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="n">k_value</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="2-quality-based-example-selection">2. Quality-Based Example Selection</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="c1"># Proposed quality-aware selection</span>
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">select_quality_examples</span><span class="p">(</span><span class="n">examples</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">quality_threshold</span><span class="o">=</span><span class="mf">0.8</span><span class="p">):</span>
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>    <span class="c1"># Filter by quality score</span>
+<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>    <span class="n">high_quality</span> <span class="o">=</span> <span class="p">[</span><span class="n">ex</span> <span class="k">for</span> <span class="n">ex</span> <span class="ow">in</span> <span class="n">examples</span> <span class="k">if</span> <span class="n">ex</span><span class="o">.</span><span class="n">quality_score</span> <span class="o">&gt;=</span> <span class="n">quality_threshold</span><span class="p">]</span>
+<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>
+<a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>    <span class="c1"># If not enough high-quality examples, include medium quality</span>
+<a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">high_quality</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">k</span><span class="p">:</span>
+<a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a>        <span class="n">medium_quality</span> <span class="o">=</span> <span class="p">[</span><span class="n">ex</span> <span class="k">for</span> <span class="n">ex</span> <span class="ow">in</span> <span class="n">examples</span> <span class="k">if</span> <span class="mf">0.6</span> <span class="o">&lt;=</span> <span class="n">ex</span><span class="o">.</span><span class="n">quality_score</span> <span class="o">&lt;</span> <span class="n">quality_threshold</span><span class="p">]</span>
+<a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a>        <span class="n">selected</span> <span class="o">=</span> <span class="n">high_quality</span> <span class="o">+</span> <span class="n">medium_quality</span><span class="p">[:</span><span class="n">k</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">high_quality</span><span class="p">)]</span>
+<a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a>        <span class="n">selected</span> <span class="o">=</span> <span class="n">high_quality</span><span class="p">[:</span><span class="n">k</span><span class="p">]</span>
+<a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a>
+<a id="__codelineno-30-13" name="__codelineno-30-13" href="#__codelineno-30-13"></a>    <span class="k">return</span> <span class="n">selected</span>
+</code></pre></div>
+<h4 id="3-dynamic-optimization-strategy">3. Dynamic Optimization Strategy</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="c1"># Proposed dynamic optimization</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">AdaptiveLabeledFewShot</span><span class="p">:</span>
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">max_k</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">min_k</span> <span class="o">=</span> <span class="n">min_k</span>
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">max_k</span> <span class="o">=</span> <span class="n">max_k</span>
+<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">performance_history</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a>
+<a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">student</span><span class="p">,</span> <span class="n">trainset</span><span class="p">,</span> <span class="n">context_metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a>        <span class="c1"># Determine optimal k based on context and history</span>
+<a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a>        <span class="n">optimal_k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_determine_optimal_k</span><span class="p">(</span><span class="n">trainset</span><span class="p">,</span> <span class="n">context_metadata</span><span class="p">)</span>
+<a id="__codelineno-31-11" name="__codelineno-31-11" href="#__codelineno-31-11"></a>
+<a id="__codelineno-31-12" name="__codelineno-31-12" href="#__codelineno-31-12"></a>        <span class="c1"># Use quality-based selection</span>
+<a id="__codelineno-31-13" name="__codelineno-31-13" href="#__codelineno-31-13"></a>        <span class="n">selected_examples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_quality_examples</span><span class="p">(</span><span class="n">trainset</span><span class="p">,</span> <span class="n">optimal_k</span><span class="p">)</span>
+<a id="__codelineno-31-14" name="__codelineno-31-14" href="#__codelineno-31-14"></a>
+<a id="__codelineno-31-15" name="__codelineno-31-15" href="#__codelineno-31-15"></a>        <span class="c1"># Compile with selected examples</span>
+<a id="__codelineno-31-16" name="__codelineno-31-16" href="#__codelineno-31-16"></a>        <span class="k">return</span> <span class="n">dspy</span><span class="o">.</span><span class="n">LabeledFewShot</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="n">optimal_k</span><span class="p">)</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">student</span><span class="p">,</span> <span class="n">trainset</span><span class="o">=</span><span class="n">selected_examples</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="integration-with-mcts-process">Integration with MCTS Process</h3>
+<p>The optimization process is deeply integrated into Elysia's MCTS workflow:</p>
+<ol>
+<li><strong>Pre-Decision Optimization</strong>: Before each decision, the system retrieves and optimizes the decision module</li>
+<li><strong>Context-Aware Learning</strong>: Optimization considers the current tree state and available actions</li>
+<li><strong>Feedback Integration</strong>: Each decision outcome contributes to the training set for future optimization</li>
+<li><strong>Multi-Level Optimization</strong>: Different parts of the MCTS process (selection, evaluation, backpropagation) use different optimization strategies</li>
+</ol>
+<p>This sophisticated optimization framework enables Elysia to continuously improve its decision-making capabilities while maintaining the systematic exploration and exploitation balance characteristic of MCTS algorithms.</p>
+<h3 id="alternative-dspy-optimizers-for-enhanced-learning">Alternative DSPy Optimizers for Enhanced Learning</h3>
+<p>While Elysia currently uses <code>LabeledFewShot</code>, several other DSPy optimizers could provide enhanced learning capabilities:</p>
+<h4 id="1-bootstrapfewshot">1. BootstrapFewShot</h4>
+<p><strong>Module</strong>: <a href="https://dspy.ai/api/optimizers/BootstrapFewShot/"><code>dspy.BootstrapFewShot</code></a>
+<strong>Purpose</strong>: Generates synthetic examples by running the module on unlabeled inputs and using high-confidence outputs as training examples
+<strong>Potential in Elysia</strong>: Could generate synthetic decision examples from historical tree states, expanding the training set beyond human-annotated feedback</p>
+<h4 id="2-miprov2">2. MIPROv2</h4>
+<p><strong>Module</strong>: <a href="https://dspy.ai/api/optimizers/MIPROv2/"><code>dspy.MIPROv2</code></a>
+<strong>Purpose</strong>: Multi-prompt optimization that generates and optimizes multiple prompt variations
+<strong>Potential in Elysia</strong>: Could optimize different prompt templates for different decision contexts (e.g., tool selection vs. parameter optimization)</p>
+<h4 id="3-copro">3. COPRO</h4>
+<p><strong>Module</strong>: <a href="https://dspy.ai/api/optimizers/COPRO/"><code>dspy.COPRO</code></a>
+<strong>Purpose</strong>: Coordinate ascent optimization for prompt engineering
+<strong>Potential in Elysia</strong>: Could optimize the decision prompts used in <code>DecisionPrompt</code> signature for better reasoning quality</p>
+<h4 id="4-bootstrapfinetune">4. BootstrapFinetune</h4>
+<p><strong>Module</strong>: <a href="https://dspy.ai/api/optimizers/BootstrapFinetune/"><code>dspy.BootstrapFinetune</code></a>
+<strong>Purpose</strong>: Combines few-shot learning with model fine-tuning
+<strong>Potential in Elysia</strong>: Could fine-tune specialized models for different types of decisions (e.g., tool selection vs. parameter tuning)</p>
+<h4 id="5-gepa-generative-prompt-evolution">5. GEPA (Generative Prompt Evolution)</h4>
+<p><strong>Module</strong>: <a href="https://dspy.ai/api/optimizers/GEPA/"><code>dspy.GEPA</code></a>
+<strong>Purpose</strong>: Evolutionary optimization of prompts using genetic algorithms
+<strong>Potential in Elysia</strong>: Could evolve decision-making prompts over time, adapting to changing user patterns and task requirements</p>
+<h3 id="comparative-analysis-of-optimization-strategies">Comparative Analysis of Optimization Strategies</h3>
+<table>
+<thead>
+<tr>
+<th>Optimizer</th>
+<th>Learning Type</th>
+<th>Sample Efficiency</th>
+<th>Generalization</th>
+<th>Computational Cost</th>
+<th>Best Use Case in Elysia</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LabeledFewShot</strong></td>
+<td>Few-shot</td>
+<td>High</td>
+<td>Limited</td>
+<td>Low</td>
+<td>Current implementation, simple decisions</td>
+</tr>
+<tr>
+<td><strong>BootstrapFewShot</strong></td>
+<td>Self-supervised</td>
+<td>Medium</td>
+<td>Good</td>
+<td>Medium</td>
+<td>Generating synthetic examples</td>
+</tr>
+<tr>
+<td><strong>MIPROv2</strong></td>
+<td>Multi-prompt</td>
+<td>High</td>
+<td>Excellent</td>
+<td>High</td>
+<td>Complex decision contexts</td>
+</tr>
+<tr>
+<td><strong>COPRO</strong></td>
+<td>Coordinate ascent</td>
+<td>Medium</td>
+<td>Good</td>
+<td>Medium</td>
+<td>Prompt optimization</td>
+</tr>
+<tr>
+<td><strong>BootstrapFinetune</strong></td>
+<td>Fine-tuning</td>
+<td>Low</td>
+<td>Excellent</td>
+<td>Very High</td>
+<td>Specialized decision models</td>
+</tr>
+<tr>
+<td><strong>GEPA</strong></td>
+<td>Evolutionary</td>
+<td>Low</td>
+<td>Excellent</td>
+<td>High</td>
+<td>Long-term adaptation</td>
+</tr>
+</tbody>
+</table>
+<h2 id="mcts-process-flow">MCTS Process Flow</h2>
+<h3 id="1-tree-initialization">1. Tree Initialization</h3>
+<p><strong>Location</strong>: <code>elysia.tree.tree.Tree.__init__</code>
+- Initializes decision nodes and tree structure
+- Sets up environment and tree data
+- Configures DSPy language models</p>
+<h3 id="2-main-execution-loop">2. Main Execution Loop</h3>
+<p><strong>Location</strong>: <code>elysia.tree.tree.Tree.async_run</code> (<a href="https://github.com/supmo668/elysia/blob/main/elysia/tree/tree.py#L1431-L1550"><code>/elysia/tree/tree.py</code></a> lines 1431-1550)</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>    <span class="c1"># Selection: Get available tools</span>
+<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>    <span class="n">available_tools</span><span class="p">,</span> <span class="n">unavailable_tools</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_available_tools</span><span class="p">(</span>
+<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>        <span class="n">current_decision_node</span><span class="p">,</span> <span class="n">client_manager</span>
+<a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>    <span class="p">)</span>
+<a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a>
+<a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a>    <span class="c1"># Exploration: Get successive actions</span>
+<a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a>    <span class="n">successive_actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_successive_actions</span><span class="p">(</span>
+<a id="__codelineno-32-9" name="__codelineno-32-9" href="#__codelineno-32-9"></a>        <span class="n">successive_actions</span><span class="o">=</span><span class="p">{},</span>
+<a id="__codelineno-32-10" name="__codelineno-32-10" href="#__codelineno-32-10"></a>        <span class="n">current_options</span><span class="o">=</span><span class="n">init_options</span><span class="p">,</span>
+<a id="__codelineno-32-11" name="__codelineno-32-11" href="#__codelineno-32-11"></a>    <span class="p">)</span>
+<a id="__codelineno-32-12" name="__codelineno-32-12" href="#__codelineno-32-12"></a>
+<a id="__codelineno-32-13" name="__codelineno-32-13" href="#__codelineno-32-13"></a>    <span class="c1"># Decision: Make choice using MCTS-like reasoning</span>
+<a id="__codelineno-32-14" name="__codelineno-32-14" href="#__codelineno-32-14"></a>    <span class="n">decision</span><span class="p">,</span> <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">current_decision_node</span><span class="p">(</span>
+<a id="__codelineno-32-15" name="__codelineno-32-15" href="#__codelineno-32-15"></a>        <span class="n">tree_data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tree_data</span><span class="p">,</span>
+<a id="__codelineno-32-16" name="__codelineno-32-16" href="#__codelineno-32-16"></a>        <span class="n">base_lm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_lm</span><span class="p">,</span>
+<a id="__codelineno-32-17" name="__codelineno-32-17" href="#__codelineno-32-17"></a>        <span class="n">complex_lm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">complex_lm</span><span class="p">,</span>
+<a id="__codelineno-32-18" name="__codelineno-32-18" href="#__codelineno-32-18"></a>        <span class="n">available_tools</span><span class="o">=</span><span class="n">available_tools</span><span class="p">,</span>
+<a id="__codelineno-32-19" name="__codelineno-32-19" href="#__codelineno-32-19"></a>        <span class="n">unavailable_tools</span><span class="o">=</span><span class="n">unavailable_tools</span><span class="p">,</span>
+<a id="__codelineno-32-20" name="__codelineno-32-20" href="#__codelineno-32-20"></a>        <span class="n">successive_actions</span><span class="o">=</span><span class="n">successive_actions</span><span class="p">,</span>
+<a id="__codelineno-32-21" name="__codelineno-32-21" href="#__codelineno-32-21"></a>        <span class="n">client_manager</span><span class="o">=</span><span class="n">client_manager</span><span class="p">,</span>
+<a id="__codelineno-32-22" name="__codelineno-32-22" href="#__codelineno-32-22"></a>    <span class="p">)</span>
+<a id="__codelineno-32-23" name="__codelineno-32-23" href="#__codelineno-32-23"></a>
+<a id="__codelineno-32-24" name="__codelineno-32-24" href="#__codelineno-32-24"></a>    <span class="c1"># Evaluation &amp; Back Propagation: Store results for learning</span>
+<a id="__codelineno-32-25" name="__codelineno-32-25" href="#__codelineno-32-25"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">training_updates</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="3-feedback-integration">3. Feedback Integration</h3>
+<p><strong>Location</strong>: Throughout the decision process</p>
+<ul>
+<li><strong>Immediate Feedback</strong>: AssertedModule provides immediate validation</li>
+<li><strong>Historical Feedback</strong>: CopiedModule incorporates past failures</li>
+<li><strong>Database Feedback</strong>: retrieve_feedback provides similar examples</li>
+<li><strong>Contextual Learning</strong>: DSPy few-shot learning optimizes modules</li>
+</ul>
+<h2 id="control-parameters">Control Parameters</h2>
+<h3 id="1-choice-control">1. Choice Control</h3>
+<ul>
+<li><strong>max_tries</strong>: Maximum retry attempts in AssertedModule (default: 3)</li>
+<li><strong>assertion function</strong>: Custom validation logic for decisions</li>
+<li><strong>USE_REASONING</strong>: Controls whether to include step-by-step reasoning</li>
+</ul>
+<h3 id="2-exploration-control">2. Exploration Control</h3>
+<ul>
+<li><strong>recursion_limit</strong>: Maximum tree depth (TreeData.recursion_limit)</li>
+<li><strong>tool availability rules</strong>: Custom logic for when tools can be used</li>
+<li><strong>successive_actions depth</strong>: How far ahead to look in action tree</li>
+</ul>
+<h3 id="3-evaluation-control">3. Evaluation Control</h3>
+<ul>
+<li><strong>feedback retrieval count</strong>: Number of examples to retrieve (n parameter)</li>
+<li><strong>certainty threshold</strong>: Weaviate similarity threshold (default: 0.7)</li>
+<li><strong>few-shot examples</strong>: Number of examples for DSPy optimization (k=10)</li>
+</ul>
+<h3 id="4-back-propagation-control">4. Back Propagation Control</h3>
+<ul>
+<li><strong>USE_FEEDBACK</strong>: Global setting to enable/disable feedback system</li>
+<li><strong>feedback storage</strong>: Weaviate database configuration</li>
+<li><strong>training update collection</strong>: What information to store for learning</li>
+</ul>
+<h2 id="dspy-framework-integration">DSPy Framework Integration</h2>
+<p>Elysia extensively uses the DSPy framework for structured LLM interactions:</p>
+<h3 id="core-dspy-components-used">Core DSPy Components Used:</h3>
+<ol>
+<li><strong>dspy.Module</strong>: Base class for all reasoning modules</li>
+<li><strong>dspy.Signature</strong>: Defines input/output structure for LLM calls</li>
+<li><strong>dspy.LabeledFewShot</strong>: Optimizer for few-shot learning</li>
+<li><strong>dspy.InputField/OutputField</strong>: Structured prompt fields</li>
+<li><strong>dspy.Prediction</strong>: Structured LLM outputs</li>
+</ol>
+<h3 id="key-dspy-modules-in-elysia">Key DSPy Modules in Elysia:</h3>
+<ul>
+<li><strong>ElysiaChainOfThought</strong>: Main reasoning module</li>
+<li><strong>DecisionPrompt</strong>: Decision-making signature</li>
+<li><strong>AssertedModule</strong>: Quality assurance wrapper</li>
+<li><strong>CopiedModule</strong>: Feedback integration wrapper</li>
+</ul>
+<h2 id="usage-examples">Usage Examples</h2>
+<h3 id="basic-decision-making">Basic Decision Making</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="c1"># Create decision node</span>
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a><span class="n">decision_node</span> <span class="o">=</span> <span class="n">DecisionNode</span><span class="p">(</span>
+<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>    <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a>    <span class="n">options</span><span class="o">=</span><span class="n">available_tools</span><span class="p">,</span>
+<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>    <span class="n">instruction</span><span class="o">=</span><span class="s2">&quot;Choose the best tool for the task&quot;</span>
+<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a><span class="p">)</span>
+<a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a>
+<a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a><span class="c1"># Make decision with MCTS-like reasoning</span>
+<a id="__codelineno-33-9" name="__codelineno-33-9" href="#__codelineno-33-9"></a><span class="n">decision</span><span class="p">,</span> <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">decision_node</span><span class="p">(</span>
+<a id="__codelineno-33-10" name="__codelineno-33-10" href="#__codelineno-33-10"></a>    <span class="n">tree_data</span><span class="o">=</span><span class="n">tree_data</span><span class="p">,</span>
+<a id="__codelineno-33-11" name="__codelineno-33-11" href="#__codelineno-33-11"></a>    <span class="n">base_lm</span><span class="o">=</span><span class="n">base_lm</span><span class="p">,</span>
+<a id="__codelineno-33-12" name="__codelineno-33-12" href="#__codelineno-33-12"></a>    <span class="n">complex_lm</span><span class="o">=</span><span class="n">complex_lm</span><span class="p">,</span>
+<a id="__codelineno-33-13" name="__codelineno-33-13" href="#__codelineno-33-13"></a>    <span class="n">available_tools</span><span class="o">=</span><span class="n">tools</span><span class="p">,</span>
+<a id="__codelineno-33-14" name="__codelineno-33-14" href="#__codelineno-33-14"></a>    <span class="n">unavailable_tools</span><span class="o">=</span><span class="p">[],</span>
+<a id="__codelineno-33-15" name="__codelineno-33-15" href="#__codelineno-33-15"></a>    <span class="n">successive_actions</span><span class="o">=</span><span class="n">future_actions</span><span class="p">,</span>
+<a id="__codelineno-33-16" name="__codelineno-33-16" href="#__codelineno-33-16"></a>    <span class="n">client_manager</span><span class="o">=</span><span class="n">client_manager</span><span class="p">,</span>
+<a id="__codelineno-33-17" name="__codelineno-33-17" href="#__codelineno-33-17"></a><span class="p">)</span>
+</code></pre></div>
+<h3 id="enabling-feedback-learning">Enabling Feedback Learning</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="c1"># Enable feedback in settings</span>
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="n">tree_data</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">USE_FEEDBACK</span> <span class="o">=</span> <span class="kc">True</span>
+<a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>
+<a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a><span class="c1"># Decision will automatically use historical examples</span>
+<a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a><span class="n">output</span><span class="p">,</span> <span class="n">uuids</span> <span class="o">=</span> <span class="k">await</span> <span class="n">decision_executor</span><span class="o">.</span><span class="n">aforward_with_feedback_examples</span><span class="p">(</span>
+<a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a>    <span class="n">feedback_model</span><span class="o">=</span><span class="s2">&quot;decision&quot;</span><span class="p">,</span>
+<a id="__codelineno-34-7" name="__codelineno-34-7" href="#__codelineno-34-7"></a>    <span class="n">client_manager</span><span class="o">=</span><span class="n">client_manager</span><span class="p">,</span>
+<a id="__codelineno-34-8" name="__codelineno-34-8" href="#__codelineno-34-8"></a>    <span class="n">base_lm</span><span class="o">=</span><span class="n">base_lm</span><span class="p">,</span>
+<a id="__codelineno-34-9" name="__codelineno-34-9" href="#__codelineno-34-9"></a>    <span class="n">complex_lm</span><span class="o">=</span><span class="n">complex_lm</span><span class="p">,</span>
+<a id="__codelineno-34-10" name="__codelineno-34-10" href="#__codelineno-34-10"></a>    <span class="o">**</span><span class="n">decision_inputs</span>
+<a id="__codelineno-34-11" name="__codelineno-34-11" href="#__codelineno-34-11"></a><span class="p">)</span>
+</code></pre></div>
+<h3 id="custom-assertion-functions">Custom Assertion Functions</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">custom_assertion</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">pred</span><span class="p">):</span>
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>    <span class="c1"># Custom validation logic</span>
+<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a>    <span class="n">is_valid</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">function_name</span> <span class="ow">in</span> <span class="n">allowed_functions</span>
+<a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a>    <span class="n">feedback</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Must choose from: </span><span class="si">{</span><span class="n">allowed_functions</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">is_valid</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+<a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a>    <span class="k">return</span> <span class="n">is_valid</span><span class="p">,</span> <span class="n">feedback</span>
+<a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a>
+<a id="__codelineno-35-7" name="__codelineno-35-7" href="#__codelineno-35-7"></a><span class="c1"># Use with AssertedModule</span>
+<a id="__codelineno-35-8" name="__codelineno-35-8" href="#__codelineno-35-8"></a><span class="n">decision_executor</span> <span class="o">=</span> <span class="n">AssertedModule</span><span class="p">(</span>
+<a id="__codelineno-35-9" name="__codelineno-35-9" href="#__codelineno-35-9"></a>    <span class="n">decision_module</span><span class="p">,</span>
+<a id="__codelineno-35-10" name="__codelineno-35-10" href="#__codelineno-35-10"></a>    <span class="n">assertion</span><span class="o">=</span><span class="n">custom_assertion</span><span class="p">,</span>
+<a id="__codelineno-35-11" name="__codelineno-35-11" href="#__codelineno-35-11"></a>    <span class="n">max_tries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+<a id="__codelineno-35-12" name="__codelineno-35-12" href="#__codelineno-35-12"></a><span class="p">)</span>
+</code></pre></div>
+<h2 id="conclusion">Conclusion</h2>
+<p>Elysia's MCTS implementation provides a sophisticated framework for decision-making in complex reasoning tasks. The system combines the systematic exploration of MCTS with the contextual understanding of large language models, enhanced by continuous learning through feedback mechanisms.</p>
+<p>The modular design allows for fine-grained control over each aspect of the reasoning process, from initial choice selection to final evaluation and learning. The extensive use of the DSPy framework ensures structured, optimizable interactions with language models throughout the process.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/weaviate/elysia" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/weaviate/elysia-frontend" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/dannyjameswilliams" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M202.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1M496 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2m-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3m-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/thomashacker" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M202.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1M496 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2m-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3m-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://www.linkedin.com/in/dannyjameswilliams/" target="_blank" rel="noopener" title="www.linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://www.linkedin.com/in/edwardschmuhl/" target="_blank" rel="noopener" title="www.linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

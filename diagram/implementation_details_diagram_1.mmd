@@ -1,0 +1,57 @@
+graph TB
+    subgraph "User/Agent Layer"
+        User[User Query]
+        Agent[Elysia Decision Agent]
+    end
+    
+    subgraph "Elysia Tree Layer"
+        Tree[Tree Instance]
+        DecisionNode[Decision Node: 'base']
+        Options[Available Options]
+    end
+    
+    subgraph "MCPTool Gateway Layer"
+        MCPTool[MCPTool Instance<br/>name: 'mcp_api_ai_mcp'<br/>One per MCP Server]
+        Action{Action Type}
+        ListAction[Action: 'list'<br/>Discover Tools]
+        ExecAction[Action: 'execute'<br/>Run Specific Tool]
+    end
+    
+    subgraph "LangChain Adapter Layer"
+        LCAdapter[langchain-mcp-adapters]
+        LCTools[LangChain Tools List<br/>tool1, tool2, tool3...]
+    end
+    
+    subgraph "MCP Server Layer"
+        MCPServer[MCP Server Process<br/>stdio or SSE]
+        Tool1[MCP Tool: search]
+        Tool2[MCP Tool: analyze]
+        Tool3[MCP Tool: summarize]
+    end
+    
+    User --> Agent
+    Agent --> Tree
+    Tree --> DecisionNode
+    DecisionNode --> Options
+    Options --> MCPTool
+    
+    MCPTool --> Action
+    Action -->|action='list'| ListAction
+    Action -->|action='execute'| ExecAction
+    
+    ListAction --> LCAdapter
+    ExecAction --> LCAdapter
+    
+    LCAdapter --> MCPServer
+    
+    MCPServer --> Tool1
+    MCPServer --> Tool2
+    MCPServer --> Tool3
+    
+    LCTools -.cached in.-> MCPTool
+    
+    style MCPTool fill:#4A90E2,stroke:#2E5C8A,color:#fff
+    style Agent fill:#9B59B6,stroke:#7D3C98,color:#fff
+    style LCAdapter fill:#F39C12,stroke:#D68910,color:#fff
+    style MCPServer fill:#E74C3C,stroke:#C0392B,color:#fff
+

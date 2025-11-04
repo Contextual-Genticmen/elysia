@@ -1,0 +1,25 @@
+graph TB
+    subgraph "❌ Alternative: Individual Tool Wrapping (NOT USED)"
+        A1[Tree] --> B1[MCPSearchTool]
+        A1 --> B2[MCPAnalyzeTool]
+        A1 --> B3[MCPSummarizeTool]
+        B1 --> C1[MCP Server 1]
+        B2 --> C1
+        B3 --> C1
+        
+        note1[Issues:<br/>- N separate tool classes<br/>- Duplicate connection logic<br/>- No dynamic discovery<br/>- Code regeneration needed]
+    end
+    
+    subgraph "✅ Implemented: Gateway Pattern"
+        A2[Tree] --> B4[MCPTool Gateway]
+        B4 --> |action='list'| C2[Discover Tools]
+        B4 --> |action='execute'<br/>tool_name='search'| C2
+        B4 --> |action='execute'<br/>tool_name='analyze'| C2
+        C2 --> D2[MCP Server]
+        
+        note2[Benefits:<br/>+ One tool per server<br/>+ Single connection<br/>+ Dynamic discovery<br/>+ No code generation]
+    end
+    
+    style note1 fill:#ffcccc,stroke:#cc0000
+    style note2 fill:#ccffcc,stroke:#00cc00
+

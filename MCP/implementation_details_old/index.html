@@ -1,0 +1,2353 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
+    
+    
+      
+        <title>MCP Implementation Details - Elysia API</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+      
+        <meta  property="og:type"  content="website" >
+      
+        <meta  property="og:title"  content="MCP Implementation Details - Elysia API" >
+      
+        <meta  property="og:description"  content="None" >
+      
+        <meta  property="og:image"  content="./assets/images/social/MCP/implementation_details_old.png" >
+      
+        <meta  property="og:image:type"  content="image/png" >
+      
+        <meta  property="og:image:width"  content="1200" >
+      
+        <meta  property="og:image:height"  content="630" >
+      
+        <meta  property="og:url"  content="None" >
+      
+        <meta  name="twitter:card"  content="summary_large_image" >
+      
+        <meta  name="twitter:title"  content="MCP Implementation Details - Elysia API" >
+      
+        <meta  name="twitter:description"  content="None" >
+      
+        <meta  name="twitter:image"  content="./assets/images/social/MCP/implementation_details_old.png" >
+      
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#mcp-implementation-details" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Elysia API" class="md-header__button md-logo" aria-label="Elysia API" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Elysia API
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              MCP Implementation Details
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6m0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4M7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="lime"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../setting_up/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Setting Up
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../basic/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Basic Usage
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../advanced_usage/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Customising Elysia
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../creating_tools/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Creating a Tool
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../Advanced/" class="md-tabs__link">
+          
+  
+  
+  Advanced
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  MCP Integration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../API/" class="md-tabs__link">
+          
+  
+  
+  API
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../Examples/" class="md-tabs__link">
+          
+  
+  
+  Examples
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../Reference/Preprocessor/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Elysia API" class="md-nav__button md-logo" aria-label="Elysia API" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Elysia API
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setting_up/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Setting Up
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Basic Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Customising Elysia
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../creating_tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Creating a Tool
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Advanced
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Advanced/technical_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Technical Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Advanced/ELYSIA_MCTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCTS Implementation Study
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Advanced/local_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Local Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ELYSIA_MCTS.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCTS Implementation Study
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Advanced/advanced_tool_construction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tool Construction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Advanced/tool_discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tool Discovery & Initialization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Advanced/custom_objects/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Custom Objects
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Advanced/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    MCP Integration
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            MCP Integration
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Usage Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../implementation_details/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Details
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/user_and_tree_managers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    User Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/payload_formats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Payload Formats
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Index
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/query_weaviate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Querying Weaviate
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/data_analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Basic Linear Regression
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/Preprocessor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Preprocessor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/Tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tree
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/Client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    WeaviateClient
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/Managers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Managers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/Settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Settings
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/Objects/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Objects
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/PayloadTypes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Payload Types
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/Util/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Util
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="mcp-implementation-details">MCP Implementation Details</h1>
+<p>This document provides comprehensive implementation information for the MCP integration, including architecture, interaction models, and technical details.</p>
+<h2 id="mcp-tool-interaction-model">MCP Tool Interaction Model</h2>
+<h3 id="architecture-decision-mcp-server-as-gateway-tool">Architecture Decision: MCP Server as Gateway Tool</h3>
+<p><strong>Key Concept</strong>: Each <code>MCPTool</code> instance represents <strong>one MCP server</strong> that acts as a <strong>gateway</strong> to multiple underlying tools.</p>
+<p><strong>Design Pattern</strong>: Gateway + Two-Phase Execution
+- <strong>Phase 1</strong>: Discovery - List available tools from the MCP server
+- <strong>Phase 2</strong>: Execution - Execute a specific tool by name</p>
+<p><strong>NOT</strong>: Each MCP server tool as a separate Elysia Tool
+<strong>YES</strong>: One Elysia Tool per MCP server, exposing multiple tools via actions</p>
+<h3 id="interaction-flow">Interaction Flow</h3>
+<pre class="mermaid"><code>graph TB
+    subgraph "User/Agent Layer"
+        User[User Query]
+        Agent[Elysia Decision Agent]
+    end
+
+    subgraph "Elysia Tree Layer"
+        Tree[Tree Instance]
+        DecisionNode[Decision Node: 'base']
+        Options[Available Options]
+    end
+
+    subgraph "MCPTool Gateway Layer"
+        MCPTool[MCPTool Instance&lt;br/&gt;name: 'mcp_api_ai_mcp'&lt;br/&gt;One per MCP Server]
+        Action{Action Type}
+        ListAction[Action: 'list'&lt;br/&gt;Discover Tools]
+        ExecAction[Action: 'execute'&lt;br/&gt;Run Specific Tool]
+    end
+
+    subgraph "LangChain Adapter Layer"
+        LCAdapter[langchain-mcp-adapters]
+        LCTools[LangChain Tools List&lt;br/&gt;tool1, tool2, tool3...]
+    end
+
+    subgraph "MCP Server Layer"
+        MCPServer[MCP Server Process&lt;br/&gt;stdio or SSE]
+        Tool1[MCP Tool: search]
+        Tool2[MCP Tool: analyze]
+        Tool3[MCP Tool: summarize]
+    end
+
+    User --&gt; Agent
+    Agent --&gt; Tree
+    Tree --&gt; DecisionNode
+    DecisionNode --&gt; Options
+    Options --&gt; MCPTool
+
+    MCPTool --&gt; Action
+    Action --&gt;|action='list'| ListAction
+    Action --&gt;|action='execute'| ExecAction
+
+    ListAction --&gt; LCAdapter
+    ExecAction --&gt; LCAdapter
+
+    LCAdapter --&gt; MCPServer
+
+    MCPServer --&gt; Tool1
+    MCPServer --&gt; Tool2
+    MCPServer --&gt; Tool3
+
+    LCTools -.cached in.-&gt; MCPTool
+
+    style MCPTool fill:#4A90E2,stroke:#2E5C8A,color:#fff
+    style Agent fill:#9B59B6,stroke:#7D3C98,color:#fff
+    style LCAdapter fill:#F39C12,stroke:#D68910,color:#fff
+    style MCPServer fill:#E74C3C,stroke:#C0392B,color:#fff</code></pre>
+<h3 id="parameter-surfacing-model">Parameter Surfacing Model</h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Agent as Elysia Agent
+    participant MCPTool as MCPTool Gateway
+    participant Init as initialize()
+    participant LC as LangChain Tools
+    participant MCP as MCP Server
+
+    Note over Agent,MCP: Phase 1: Discovery &amp; Initialization
+
+    Agent-&gt;&gt;MCPTool: First call (any action)
+    MCPTool-&gt;&gt;Init: Check _initialized flag
+    Init-&gt;&gt;LC: load_mcp_tools(session)
+    LC-&gt;&gt;MCP: Connect via stdio/SSE
+    MCP--&gt;&gt;LC: Return tool list with schemas
+    LC--&gt;&gt;Init: LangChain tool objects
+    Init-&gt;&gt;MCPTool: Cache tools in _langchain_tools[]
+    Note over MCPTool: Tools cached for reuse
+
+    Note over Agent,MCP: Phase 2a: List Tools (Discovery)
+
+    Agent-&gt;&gt;MCPTool: Call with action='list'
+    MCPTool-&gt;&gt;MCPTool: Extract tool metadata
+    Note over MCPTool: For each cached LangChain tool:&lt;br/&gt;name, description, input schema
+    MCPTool--&gt;&gt;Agent: Result([{name, description, inputs}])
+
+    Note over Agent,MCP: Phase 2b: Execute Tool
+
+    Agent-&gt;&gt;MCPTool: Call with action='execute'&lt;br/&gt;+ tool_name='search'&lt;br/&gt;+ tool_inputs={query: "..."}
+    MCPTool-&gt;&gt;MCPTool: get_tool_by_name('search')
+    MCPTool-&gt;&gt;LC: langchain_tool.ainvoke(tool_inputs)
+    LC-&gt;&gt;MCP: Execute 'search' with inputs
+    MCP--&gt;&gt;LC: Tool result
+    LC--&gt;&gt;MCPTool: Result data
+    MCPTool--&gt;&gt;Agent: Result/Text/Error objects</code></pre>
+<h3 id="why-this-design">Why This Design?</h3>
+<p><strong>Advantages of Gateway Pattern:</strong></p>
+<ol>
+<li><strong>Single Tool Registration</strong>: One MCPTool per server instead of N separate tools</li>
+<li><strong>Dynamic Discovery</strong>: Tools can change without code regeneration</li>
+<li><strong>Lazy Loading</strong>: Connect to MCP server only when first used</li>
+<li><strong>Unified Management</strong>: Single point for monitoring, logging, error handling</li>
+<li><strong>Tool Metadata Access</strong>: Agent can query available tools before execution</li>
+</ol>
+<p><strong>Alternative Rejected: Individual Tool Wrapping</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># ❌ NOT IMPLEMENTED: Each MCP tool as separate Elysia tool</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">tree</span><span class="o">.</span><span class="n">add_tool</span><span class="p">(</span><span class="n">MCPSearchTool</span><span class="p">())</span>      <span class="c1"># Would need separate class</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">tree</span><span class="o">.</span><span class="n">add_tool</span><span class="p">(</span><span class="n">MCPAnalyzeTool</span><span class="p">())</span>     <span class="c1"># Would need separate class</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">tree</span><span class="o">.</span><span class="n">add_tool</span><span class="p">(</span><span class="n">MCPSummarizeTool</span><span class="p">())</span>   <span class="c1"># Would need separate class</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># ✅ IMPLEMENTED: Gateway pattern</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">tree</span><span class="o">.</span><span class="n">add_tool</span><span class="p">(</span><span class="n">MCPTool</span><span class="p">(</span><span class="n">server_name</span><span class="o">=</span><span class="s2">&quot;api_ai_mcp&quot;</span><span class="p">))</span>  <span class="c1"># One tool, multiple capabilities</span>
+</code></pre></div></p>
+<h2 id="changes-summary">Changes Summary</h2>
+<h3 id="quick-summary">Quick Summary</h3>
+<p><strong>Problem</strong>: MCP tools from <code>mcp.json</code> were not visible in the tree structure sent to the frontend.</p>
+<p><strong>Solution</strong>: Enhanced tool discovery to include MCP tools and auto-load them during tree initialization.</p>
+<p><strong>Result</strong>: MCP tools now automatically appear in the tree structure and are visible in the UI.</p>
+<hr />
+<h2 id="tool-discovery-loading-flow">Tool Discovery &amp; Loading Flow</h2>
+<h3 id="before-fix-tools-not-visible">Before Fix (Tools Not Visible)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>┌─────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>│ Application Startup                                             │
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>└─────────────────────────────────────────────────────────────────┘
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>                            │
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>                            ▼
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>┌─────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>│ elysia/tools/mcp/mcp_loader.py                                  │
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>│ - Reads mcp.json                                                │
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>│ - Creates MCP_api_ai_mcp class                                  │
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>│ - Exports to module namespace                                   │
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>└─────────────────────────────────────────────────────────────────┘
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>                            │
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>                            ▼
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>┌─────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>│ Tree Initialization: Tree(branch_initialisation=&quot;one_branch&quot;)   │
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>└─────────────────────────────────────────────────────────────────┘
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>                            │
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>                            ▼
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>┌─────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>│ set_branch_initialisation(&quot;one_branch&quot;)                         │
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>│   └─&gt; load_default_tools_for_mode()                            │
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>│       └─&gt; Adds: Query, Aggregate, Visualise, etc.              │
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>└─────────────────────────────────────────────────────────────────┘
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>                            │
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>                            ▼
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>┌─────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>│ _load_additional_discovered_tools()                             │
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>│   └─&gt; discover_tools_from_module()                             │
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>│       └─&gt; Only searches: elysia.api.custom_tools               │
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>│           ❌ DOES NOT FIND MCP tools!                           │
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>└─────────────────────────────────────────────────────────────────┘
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>                            │
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>                            ▼
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>┌─────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>│ tree.tree structure                                             │
+<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>│ {                                                               │
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>│   &quot;base&quot;: {                                                     │
+<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>│     &quot;options&quot;: {                                                │
+<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>│       &quot;query&quot;: {...},                                           │
+<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>│       &quot;aggregate&quot;: {...}                                        │
+<a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>│       ❌ NO MCP TOOLS                                           │
+<a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>│     }                                                           │
+<a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>│   }                                                             │
+<a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a>│ }                                                               │
+<a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a>└─────────────────────────────────────────────────────────────────┘
+<a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>                            │
+<a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a>                            ▼
+<a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>┌─────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a>│ Frontend: GET /tree/{user_id}/{conversation_id}                 │
+<a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a>│   └─&gt; Receives tree.tree                                       │
+<a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a>│       └─&gt; MCP tools NOT VISIBLE in UI ❌                        │
+<a id="__codelineno-1-52" name="__codelineno-1-52" href="#__codelineno-1-52"></a>└─────────────────────────────────────────────────────────────────┘
+<a id="__codelineno-1-53" name="__codelineno-1-53" href="#__codelineno-1-53"></a>## Tool Discovery &amp; Loading Flow
+<a id="__codelineno-1-54" name="__codelineno-1-54" href="#__codelineno-1-54"></a>
+<a id="__codelineno-1-55" name="__codelineno-1-55" href="#__codelineno-1-55"></a>### Before Fix (Tools Not Visible)
+<a id="__codelineno-1-56" name="__codelineno-1-56" href="#__codelineno-1-56"></a>
+<a id="__codelineno-1-57" name="__codelineno-1-57" href="#__codelineno-1-57"></a>```mermaid
+<a id="__codelineno-1-58" name="__codelineno-1-58" href="#__codelineno-1-58"></a>flowchart TD
+<a id="__codelineno-1-59" name="__codelineno-1-59" href="#__codelineno-1-59"></a>    Start([Application Startup]) --&gt; LoadMCP[elysia/tools/mcp/mcp_loader.py&lt;br/&gt;Reads mcp.json&lt;br/&gt;Creates MCP classes]
+<a id="__codelineno-1-60" name="__codelineno-1-60" href="#__codelineno-1-60"></a>    LoadMCP --&gt; TreeInit[Tree Initialization&lt;br/&gt;branch_initialisation=&#39;one_branch&#39;]
+<a id="__codelineno-1-61" name="__codelineno-1-61" href="#__codelineno-1-61"></a>    TreeInit --&gt; SetBranch[set_branch_initialisation]
+<a id="__codelineno-1-62" name="__codelineno-1-62" href="#__codelineno-1-62"></a>    SetBranch --&gt; LoadDefault[load_default_tools_for_mode&lt;br/&gt;Adds: Query, Aggregate, etc.]
+<a id="__codelineno-1-63" name="__codelineno-1-63" href="#__codelineno-1-63"></a>    LoadDefault --&gt; DiscoverAdditional[_load_additional_discovered_tools]
+<a id="__codelineno-1-64" name="__codelineno-1-64" href="#__codelineno-1-64"></a>    DiscoverAdditional --&gt; SearchCustom[discover_tools_from_module&lt;br/&gt;Only searches: elysia.api.custom_tools]
+<a id="__codelineno-1-65" name="__codelineno-1-65" href="#__codelineno-1-65"></a>    SearchCustom --&gt; NoMCP[❌ DOES NOT FIND MCP tools!]
+<a id="__codelineno-1-66" name="__codelineno-1-66" href="#__codelineno-1-66"></a>    NoMCP --&gt; BuildTree[tree.tree structure&lt;br/&gt;NO MCP TOOLS]
+<a id="__codelineno-1-67" name="__codelineno-1-67" href="#__codelineno-1-67"></a>    BuildTree --&gt; Frontend[Frontend GET /tree/user/conversation&lt;br/&gt;❌ MCP tools NOT VISIBLE]
+<a id="__codelineno-1-68" name="__codelineno-1-68" href="#__codelineno-1-68"></a>
+<a id="__codelineno-1-69" name="__codelineno-1-69" href="#__codelineno-1-69"></a>    style NoMCP fill:#ffcccc,stroke:#cc0000
+<a id="__codelineno-1-70" name="__codelineno-1-70" href="#__codelineno-1-70"></a>    style Frontend fill:#ffcccc,stroke:#cc0000
+<a id="__codelineno-1-71" name="__codelineno-1-71" href="#__codelineno-1-71"></a>    style BuildTree fill:#ffeecc,stroke:#cc6600
+</code></pre></div>
+<h3 id="after-fix-tools-visible">After Fix (Tools Visible)</h3>
+<pre class="mermaid"><code>flowchart TD
+    Start([Application Startup]) --&gt; LoadMCP[elysia/tools/mcp/mcp_loader.py&lt;br/&gt;Reads mcp.json&lt;br/&gt;Creates MCP classes]
+    LoadMCP --&gt; TreeInit[Tree Initialization&lt;br/&gt;branch_initialisation='one_branch']
+    TreeInit --&gt; SetBranch[set_branch_initialisation]
+    SetBranch --&gt; LoadDefault[load_default_tools_for_mode ✨&lt;br/&gt;Adds: Query, Aggregate, etc.]
+    LoadDefault --&gt; AutoDiscover[🆕 Auto-discover MCP tools]
+    AutoDiscover --&gt; SearchMCP[discover_tools_from_module&lt;br/&gt;Searches: elysia.tools.mcp.mcp_loader]
+    SearchMCP --&gt; FoundMCP[✅ FINDS: MCP_api_ai_mcp]
+    FoundMCP --&gt; AddTool[tree.add_tool MCP_api_ai_mcp]
+    AddTool --&gt; UpdateNode[tree.decision_nodes base.options&lt;br/&gt;mcp_api_ai_mcp added]
+    UpdateNode --&gt; BuildTree[tree._construct_tree&lt;br/&gt;MCP TOOLS IN STRUCTURE]
+    BuildTree --&gt; Frontend[Frontend GET /tree/user/conversation&lt;br/&gt;✅ MCP tools VISIBLE in UI]
+
+    style FoundMCP fill:#ccffcc,stroke:#00cc00
+    style Frontend fill:#ccffcc,stroke:#00cc00
+    style BuildTree fill:#eeffcc,stroke:#66cc00
+    style AutoDiscover fill:#cceeff,stroke:#0066cc</code></pre>
+<h2 id="mcptool-inputoutput-contract">MCPTool Input/Output Contract</h2>
+<h3 id="tool-definition-what-agent-sees">Tool Definition (What Agent Sees)</h3>
+<pre class="mermaid"><code>classDiagram
+    class MCPTool {
+        +name: str = "mcp_server_name"
+        +description: str = "MCP server '...' provides access to multiple tools"
+        +status: str = "Ready to connect"
+        +inputs: dict
+        +end: bool = False
+
+        +initialize() bool
+        +__call__(inputs) AsyncGenerator
+        +get_tool_by_name(name) Tool
+        +is_tool_available() bool
+    }
+
+    class ToolInputs {
+        action: str = "list|execute"
+        tool_name: Optional~str~
+        tool_inputs: Optional~dict~
+    }
+
+    class ToolOutputs {
+        Status: "Initializing..."
+        Result: List~dict~
+        Text: str
+        Error: str
+    }
+
+    MCPTool --&gt; ToolInputs : expects
+    MCPTool --&gt; ToolOutputs : yields
+
+    note for MCPTool "Single gateway to multiple MCP tools&lt;br/&gt;Agent sees ONE tool per MCP server"
+    note for ToolInputs "action='list': Discover tools&lt;br/&gt;action='execute': Run specific tool"</code></pre>
+<h3 id="input-schema-surfacing">Input Schema Surfacing</h3>
+<p>The agent receives this schema in <code>DecisionPrompt.available_actions</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;mcp_api_ai_mcp&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;MCP server &#39;api-ai-mcp&#39; (stdio) - provides access to multiple tools&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="s2">&quot;inputs&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>        <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Action: &#39;list&#39; to show tools, &#39;execute&#39; to run a specific tool&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;class &#39;str&#39;&gt;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>            <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;list&quot;</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>        <span class="p">},</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>        <span class="s2">&quot;tool_name&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Name of the tool to execute (required when action=&#39;execute&#39;)&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;class &#39;str&#39;&gt;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="kc">False</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>        <span class="p">},</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>        <span class="s2">&quot;tool_inputs&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Inputs for the tool (required when action=&#39;execute&#39;)&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;class &#39;dict&#39;&gt;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>            <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="p">{}</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>        <span class="p">}</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>    <span class="p">}</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="execution-patterns">Execution Patterns</h3>
+<h4 id="pattern-1-discovery-first">Pattern 1: Discovery First</h4>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Agent
+    participant MCPTool
+    participant MCPServer
+
+    Agent-&gt;&gt;MCPTool: action='list'
+    activate MCPTool
+    MCPTool-&gt;&gt;MCPServer: Connect &amp; discover
+    MCPServer--&gt;&gt;MCPTool: [search, analyze, summarize]
+    MCPTool--&gt;&gt;Agent: Result([{name: 'search', ...}, ...])
+    deactivate MCPTool
+
+    Note over Agent: Agent sees available tools&lt;br/&gt;and their input schemas
+
+    Agent-&gt;&gt;MCPTool: action='execute'&lt;br/&gt;tool_name='search'&lt;br/&gt;tool_inputs={query: "ML"}
+    activate MCPTool
+    MCPTool-&gt;&gt;MCPServer: Execute 'search' tool
+    MCPServer--&gt;&gt;MCPTool: Search results
+    MCPTool--&gt;&gt;Agent: Text("Found 3 documents...")
+    deactivate MCPTool</code></pre>
+<h4 id="pattern-2-direct-execution">Pattern 2: Direct Execution</h4>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Agent
+    participant MCPTool
+    participant MCPServer
+
+    Note over Agent: Agent already knows&lt;br/&gt;tool name from config
+
+    Agent-&gt;&gt;MCPTool: action='execute'&lt;br/&gt;tool_name='analyze'&lt;br/&gt;tool_inputs={text: "..."}
+    activate MCPTool
+    MCPTool-&gt;&gt;MCPTool: Initialize if needed
+    MCPTool-&gt;&gt;MCPServer: Execute 'analyze' tool
+    MCPServer--&gt;&gt;MCPTool: Analysis result
+    MCPTool--&gt;&gt;Agent: Result([{sentiment: 0.8, ...}])
+    deactivate MCPTool</code></pre>
+<h2 id="parameter-flow-from-configuration-to-execution">Parameter Flow: From Configuration to Execution</h2>
+<pre class="mermaid"><code>flowchart LR
+    subgraph "1. Configuration"
+        JSON[mcp.json&lt;br/&gt;server_script_path&lt;br/&gt;url, headers, etc.]
+    end
+
+    subgraph "2. Tool Creation"
+        Loader[mcp_loader.py&lt;br/&gt;Creates MCPTool class]
+        Instance[MCPTool instance&lt;br/&gt;with config params]
+    end
+
+    subgraph "3. Tree Registration"
+        Discovery[Tool Discovery&lt;br/&gt;discover_tools_from_module]
+        TreeAdd[tree.add_tool&lt;br/&gt;MCPTool instance]
+    end
+
+    subgraph "4. Agent Decision"
+        Schema[DecisionPrompt&lt;br/&gt;available_actions with inputs]
+        AgentChoice[Agent selects tool&lt;br/&gt;+ provides inputs]
+    end
+
+    subgraph "5. Execution"
+        Call[MCPTool.__call__&lt;br/&gt;action, tool_name, tool_inputs]
+        MCPExec[MCP Server execution]
+    end
+
+    JSON --&gt; Loader
+    Loader --&gt; Instance
+    Instance --&gt; Discovery
+    Discovery --&gt; TreeAdd
+    TreeAdd --&gt; Schema
+    Schema --&gt; AgentChoice
+    AgentChoice --&gt; Call
+    Call --&gt; MCPExec
+
+    style JSON fill:#e1f5ff
+    style Schema fill:#fff4e6
+    style MCPExec fill:#e8f5e9</code></pre>
+<h2 id="two-phase-parameter-surfacing">Two-Phase Parameter Surfacing</h2>
+<h3 id="phase-1-mcptool-parameters-elysia-level">Phase 1: MCPTool Parameters (Elysia Level)</h3>
+<p>These are <strong>always</strong> visible to the agent in <code>available_actions</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">## Two-Phase Parameter Surfacing</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1">### Phase 1: MCPTool Parameters (Elysia Level)</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">These</span> <span class="n">are</span> <span class="o">**</span><span class="n">always</span><span class="o">**</span> <span class="n">visible</span> <span class="n">to</span> <span class="n">the</span> <span class="n">agent</span> <span class="ow">in</span> <span class="err">`</span><span class="n">available_actions</span><span class="err">`</span><span class="p">:</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="err">```</span><span class="n">python</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">{</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;list&quot;</span> <span class="o">|</span> <span class="s2">&quot;execute&quot;</span><span class="p">,</span>      <span class="c1"># What to do with the MCP server</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    <span class="s2">&quot;tool_name&quot;</span><span class="p">:</span> <span class="s2">&quot;optional_string&quot;</span><span class="p">,</span>    <span class="c1"># Which MCP tool to run (if execute)</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="s2">&quot;tool_inputs&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">}</span>    <span class="c1"># Inputs for that specific tool</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="phase-2-mcp-tool-parameters-mcp-server-level">Phase 2: MCP Tool Parameters (MCP Server Level)</h3>
+<p>These are <strong>discovered dynamically</strong> when <code>action='list'</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Agent calls: MCPTool(action=&#39;list&#39;)</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># Returns:</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="p">[</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="p">{</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;search&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Search documents&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>        <span class="s2">&quot;inputs&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>            <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>            <span class="s2">&quot;limit&quot;</span><span class="p">:</span> <span class="s2">&quot;int&quot;</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>        <span class="p">}</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="p">},</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>    <span class="p">{</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;analyze&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Analyze sentiment&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>        <span class="s2">&quot;inputs&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>            <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>        <span class="p">}</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>    <span class="p">}</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="p">]</span>
+</code></pre></div>
+<p>Then agent uses this info to call:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">MCPTool</span><span class="p">(</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    <span class="n">action</span><span class="o">=</span><span class="s1">&#39;execute&#39;</span><span class="p">,</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="n">tool_name</span><span class="o">=</span><span class="s1">&#39;search&#39;</span><span class="p">,</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="n">tool_inputs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;query&#39;</span><span class="p">:</span> <span class="s1">&#39;ML papers&#39;</span><span class="p">,</span> <span class="s1">&#39;limit&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">}</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="p">)</span>
+</code></pre></div></p>
+<h2 id="real-world-execution-example">Real-World Execution Example</h2>
+<h3 id="complete-flow-with-parameter-surfacing">Complete Flow with Parameter Surfacing</h3>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    participant U as User
+    participant A as Agent/Tree
+    participant D as DecisionPrompt
+    participant M as MCPTool
+    participant L as LangChain
+    participant S as MCP Server
+
+    U-&gt;&gt;A: "Find ML papers and analyze sentiment"
+
+    Note over A,D: Decision Phase
+    A-&gt;&gt;D: Build DecisionPrompt with available_actions
+    D-&gt;&gt;D: available_actions includes:&lt;br/&gt;{name: "mcp_api_ai_mcp"&lt;br/&gt;inputs: {action, tool_name, tool_inputs}}
+    D-&gt;&gt;A: Select "mcp_api_ai_mcp" + inputs
+
+    Note over A,M: Discovery Phase
+    A-&gt;&gt;M: __call__(action='list')
+    M-&gt;&gt;M: initialize() if needed
+    M-&gt;&gt;L: Connect to MCP server
+    L-&gt;&gt;S: Discover available tools
+    S--&gt;&gt;L: [search_tool, analyze_tool, ...]
+    L--&gt;&gt;M: LangChain tool objects with schemas
+    M--&gt;&gt;A: Result([{name: "search", inputs: {...}}, ...])
+
+    Note over A: Agent now knows MCP tools&lt;br/&gt;and their schemas
+
+    Note over A,M: Execution Phase 1: Search
+    A-&gt;&gt;M: __call__(action='execute',&lt;br/&gt;tool_name='search',&lt;br/&gt;tool_inputs={query: "ML papers"})
+    M-&gt;&gt;L: langchain_tool.ainvoke({query: "ML papers"})
+    L-&gt;&gt;S: Execute search_tool
+    S--&gt;&gt;L: ["Paper 1", "Paper 2", ...]
+    L--&gt;&gt;M: Result data
+    M--&gt;&gt;A: Text("Found 3 ML papers...")
+
+    Note over A,M: Execution Phase 2: Analyze
+    A-&gt;&gt;M: __call__(action='execute',&lt;br/&gt;tool_name='analyze',&lt;br/&gt;tool_inputs={text: "Paper 1 content"})
+    M-&gt;&gt;L: langchain_tool.ainvoke({text: "..."})
+    L-&gt;&gt;S: Execute analyze_tool
+    S--&gt;&gt;L: {sentiment: 0.85, ...}
+    L--&gt;&gt;M: Analysis result
+    M--&gt;&gt;A: Result([{sentiment: 0.85}])
+
+    A--&gt;&gt;U: "Found 3 papers. Sentiment analysis shows positive..."</code></pre>
+<h2 id="architecture-comparison">Architecture Comparison</h2>
+<h3 id="design-choice-why-gateway-pattern">Design Choice: Why Gateway Pattern?</h3>
+<pre class="mermaid"><code>graph TB
+    subgraph "❌ Alternative: Individual Tool Wrapping (NOT USED)"
+        A1[Tree] --&gt; B1[MCPSearchTool]
+        A1 --&gt; B2[MCPAnalyzeTool]
+        A1 --&gt; B3[MCPSummarizeTool]
+        B1 --&gt; C1[MCP Server 1]
+        B2 --&gt; C1
+        B3 --&gt; C1
+
+        note1[Issues:&lt;br/&gt;- N separate tool classes&lt;br/&gt;- Duplicate connection logic&lt;br/&gt;- No dynamic discovery&lt;br/&gt;- Code regeneration needed]
+    end
+
+    subgraph "✅ Implemented: Gateway Pattern"
+        A2[Tree] --&gt; B4[MCPTool Gateway]
+        B4 --&gt; |action='list'| C2[Discover Tools]
+        B4 --&gt; |action='execute'&lt;br/&gt;tool_name='search'| C2
+        B4 --&gt; |action='execute'&lt;br/&gt;tool_name='analyze'| C2
+        C2 --&gt; D2[MCP Server]
+
+        note2[Benefits:&lt;br/&gt;+ One tool per server&lt;br/&gt;+ Single connection&lt;br/&gt;+ Dynamic discovery&lt;br/&gt;+ No code generation]
+    end
+
+    style note1 fill:#ffcccc,stroke:#cc0000
+    style note2 fill:#ccffcc,stroke:#00cc00</code></pre>
+<h3 id="1-elysiautiltool_discoverypy">1. <code>elysia/util/tool_discovery.py</code></h3>
+<p><strong>Function Modified</strong>: <code>discover_tools_from_module()</code></p>
+<p><strong>Changes</strong>:
+- Added import of <code>elysia.tools.mcp.mcp_loader</code>
+- Added logic to discover MCP tool classes from the mcp_loader module
+- Filters for Tool subclasses with names starting with <code>MCP_</code></p>
+<p><strong>Impact</strong>: MCP tools are now discovered alongside custom tools</p>
+<h3 id="2-elysiatoolsuidefault_toolspy">2. <code>elysia/tools/ui/default_tools.py</code></h3>
+<p><strong>Function Modified</strong>: <code>load_default_tools_for_mode()</code></p>
+<p><strong>Changes</strong>:
+- Added auto-discovery of MCP tools after loading default tools
+- Automatically adds discovered MCP tools to the root branch
+- Logs successful and failed MCP tool additions</p>
+<p><strong>Impact</strong>: MCP tools are automatically added to every tree initialization</p>
+<h3 id="3-elysiatreetreepy">3. <code>elysia/tree/tree.py</code></h3>
+<p><strong>Method Modified</strong>: <code>_load_additional_discovered_tools()</code></p>
+<p><strong>Changes</strong>:
+- Removed duplicate MCP loading logic
+- Converted to empty stub with deprecation notice
+- Kept for backwards compatibility</p>
+<p><strong>Impact</strong>: Eliminates duplicate code; all MCP loading now centralized</p>
+<h2 id="transport-types-support">Transport Types Support</h2>
+<h3 id="transport-architecture">Transport Architecture</h3>
+<pre class="mermaid"><code>graph TB
+    subgraph "MCPTool Configuration"
+        Config[MCPTool Instance]
+        TransportType{transport_type}
+    end
+
+    subgraph "Stdio Transport (Local)"
+        Stdio[StdioServerParameters]
+        StdioClient[stdio_client]
+        LocalScript[Local Python Script&lt;br/&gt;server.py]
+
+        StdioConfig[Configuration:&lt;br/&gt;- server_script_path: str&lt;br/&gt;- command: 'python']
+    end
+
+    subgraph "SSE Transport (Remote)"
+        SSE[SSE Configuration]
+        SSEClient[sse_client]
+        RemoteServer[Remote HTTP Server&lt;br/&gt;http://host:port/mcp]
+
+        SSEConfig[Configuration:&lt;br/&gt;- url: str&lt;br/&gt;- headers: dict]
+    end
+
+    subgraph "Common MCP Layer"
+        Session[ClientSession]
+        Protocol[MCP Protocol]
+        Tools[load_mcp_tools]
+    end
+
+    Config --&gt; TransportType
+    TransportType --&gt;|type='stdio'| Stdio
+    TransportType --&gt;|type='sse'| SSE
+
+    Stdio --&gt; StdioConfig
+    StdioConfig --&gt; StdioClient
+    StdioClient --&gt; LocalScript
+    LocalScript --&gt; Session
+
+    SSE --&gt; SSEConfig
+    SSEConfig --&gt; SSEClient
+    SSEClient --&gt; RemoteServer
+    RemoteServer --&gt; Session
+
+    Session --&gt; Protocol
+    Protocol --&gt; Tools
+
+    style Stdio fill:#e8f5e9,stroke:#4CAF50
+    style SSE fill:#e3f2fd,stroke:#2196F3
+    style Session fill:#fff9c4,stroke:#FBC02D</code></pre>
+<h3 id="stdio-transport-local-mcp-server">Stdio Transport (Local MCP Server)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">tool</span> <span class="o">=</span> <span class="n">MCPTool</span><span class="p">(</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>    <span class="n">server_name</span><span class="o">=</span><span class="s2">&quot;my_server&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    <span class="n">transport_type</span><span class="o">=</span><span class="s2">&quot;stdio&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="n">server_script_path</span><span class="o">=</span><span class="s2">&quot;/path/to/server.py&quot;</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="p">)</span>
+</code></pre></div>
+<p><strong>Use Case</strong>: Local development, custom scripts, file system tools</p>
+<h3 id="sse-transport-remote-mcp-server">SSE Transport (Remote MCP Server)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">tool</span> <span class="o">=</span> <span class="n">MCPTool</span><span class="p">(</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>    <span class="n">server_name</span><span class="o">=</span><span class="s2">&quot;api_server&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    <span class="n">transport_type</span><span class="o">=</span><span class="s2">&quot;sse&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="n">url</span><span class="o">=</span><span class="s2">&quot;http://localhost:8080/mcp&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;Bearer token&quot;</span><span class="p">}</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="p">)</span>
+</code></pre></div>
+<p><strong>Use Case</strong>: API integrations, cloud services, remote tools</p>
+<h2 id="configuration-schema">Configuration Schema</h2>
+<h3 id="stdio-transport-configuration">Stdio Transport Configuration</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">{</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;server_name&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Server description&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;stdio&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="nt">&quot;server_script_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/path/to/script.py&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="sse-transport-configuration">SSE Transport Configuration</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p">{</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;server_name&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Server description&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sse&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;http://host:port/path&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span><span class="nt">&quot;headers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="nt">&quot;Authorization&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Bearer token&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="nt">&quot;Custom-Header&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value&quot;</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">  </span><span class="nt">&quot;inputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;promptString&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">      </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;token_id&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Token description&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="w">      </span><span class="nt">&quot;password&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="w">  </span><span class="p">],</span>
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="w">  </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="p">}</span>
+</code></pre></div>
+<h2 id="testing-checklist">Testing Checklist</h2>
+<ul>
+<li>[x] MCP tools are discovered by <code>discover_tools_from_module()</code></li>
+<li>[x] MCP tools are added to tree during initialization</li>
+<li>[x] MCP tools appear in <code>tree.tools</code> dictionary</li>
+<li>[x] MCP tools appear in <code>tree.decision_nodes[root].options</code></li>
+<li>[x] MCP tools appear in <code>tree.tree</code> structure (what frontend sees)</li>
+<li>[x] Tool deduplication (<code>tools.py</code> uses <code>tool_discovery.py</code>)</li>
+<li>[x] Stdio transport support (local MCP servers)</li>
+<li>[x] SSE transport support (remote MCP servers)</li>
+<li>[x] Backwards compatibility maintained</li>
+</ul>
+<h2 id="summary-how-mcptool-works">Summary: How MCPTool Works</h2>
+<h3 id="key-points">Key Points</h3>
+<ol>
+<li><strong>One Tool Per Server</strong>: Each <code>MCPTool</code> instance = one MCP server gateway</li>
+<li><strong>Two-Phase Operation</strong>: </li>
+<li><code>action='list'</code>: Discover available tools</li>
+<li><code>action='execute'</code>: Run a specific tool</li>
+<li><strong>Dynamic Discovery</strong>: Tools are discovered at runtime, no code generation</li>
+<li><strong>Gateway Pattern</strong>: Agent interacts with ONE tool that proxies to many MCP tools</li>
+<li><strong>Parameter Surfacing</strong>: </li>
+<li><strong>Elysia Level</strong>: action, tool_name, tool_inputs (always visible)</li>
+<li><strong>MCP Level</strong>: Each tool's specific parameters (discovered dynamically)</li>
+</ol>
+<h3 id="agents-view">Agent's View</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># The agent sees this in available_actions:</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="p">{</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;mcp_api_ai_mcp&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;MCP server providing multiple tools&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="s2">&quot;inputs&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>        <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;list or execute&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>        <span class="s2">&quot;tool_name&quot;</span><span class="p">:</span> <span class="s2">&quot;string (optional)&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>        <span class="s2">&quot;tool_inputs&quot;</span><span class="p">:</span> <span class="s2">&quot;dict (optional)&quot;</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>    <span class="p">}</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="p">}</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="c1"># Agent can:</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="c1"># 1. List tools: MCPTool(action=&#39;list&#39;)</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="c1"># 2. Execute tool: MCPTool(action=&#39;execute&#39;, tool_name=&#39;search&#39;, tool_inputs={...})</span>
+</code></pre></div>
+<h3 id="developers-view">Developer's View</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Configuration (mcp.json)</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="p">{</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;my_server&quot;</span><span class="p">,</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;stdio&quot;</span><span class="p">,</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="s2">&quot;server_script_path&quot;</span><span class="p">:</span> <span class="s2">&quot;/path/to/server.py&quot;</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="p">}</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="c1"># Results in MCPTool class creation</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="k">class</span><span class="w"> </span><span class="nc">MCP_my_server</span><span class="p">(</span><span class="n">MCPTool</span><span class="p">):</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>            <span class="n">server_name</span><span class="o">=</span><span class="s2">&quot;my_server&quot;</span><span class="p">,</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>            <span class="n">transport_type</span><span class="o">=</span><span class="s2">&quot;stdio&quot;</span><span class="p">,</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>            <span class="n">server_script_path</span><span class="o">=</span><span class="s2">&quot;/path/to/server.py&quot;</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>        <span class="p">)</span>
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="c1"># Automatically discovered and added to tree</span>
+<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="c1"># Agent can now use it without any manual registration</span>
+</code></pre></div>
+<h3 id="execution-flow-summary">Execution Flow Summary</h3>
+<pre class="mermaid"><code>graph LR
+    A[1. Configuration&lt;br/&gt;mcp.json] --&gt; B[2. MCPTool Class&lt;br/&gt;Auto-generated]
+    B --&gt; C[3. Tool Discovery&lt;br/&gt;Auto-loaded to tree]
+    C --&gt; D[4. Agent Decision&lt;br/&gt;Selects MCPTool]
+    D --&gt; E[5. Initialize&lt;br/&gt;Connect to MCP server]
+    E --&gt; F[6. Action: list/execute&lt;br/&gt;Discover or run tools]
+    F --&gt; G[7. Result&lt;br/&gt;Return to agent]
+
+    style A fill:#e1f5ff
+    style D fill:#fff4e6
+    style F fill:#e8f5e9
+    style G fill:#f3e5f5</code></pre>
+<h2 id="key-benefits">Key Benefits</h2>
+<ol>
+<li><strong>Automatic Discovery</strong>: MCP tools are automatically discovered and added to trees</li>
+<li><strong>No Manual Configuration</strong>: No need to manually add MCP tools to tree branches</li>
+<li><strong>Consistent Behavior</strong>: All tree initialization modes get MCP tools automatically</li>
+<li><strong>Frontend Visibility</strong>: MCP tools now visible in UI for user selection</li>
+<li><strong>Centralized Logic</strong>: All tool loading logic in one place (<code>default_tools.py</code>)</li>
+<li><strong>Multiple Transports</strong>: Support for both local (stdio) and remote (SSE) MCP servers</li>
+<li><strong>Type Safety</strong>: Strong typing with Literal types for transport validation</li>
+<li><strong>Extensibility</strong>: Easy to add new transport types</li>
+<li><strong>Gateway Pattern</strong>: One tool per server, not N tools per server</li>
+<li><strong>Dynamic Capabilities</strong>: Tools discovered at runtime, adapts to server changes</li>
+</ol>
+<h2 id="future-enhancements">Future Enhancements</h2>
+<p>Potential improvements for future consideration:</p>
+<ol>
+<li><strong>Selective Loading</strong>: Allow configuration to specify which MCP tools to load</li>
+<li><strong>Branch Placement</strong>: Allow MCP tools to be added to specific branches, not just root</li>
+<li><strong>Tool Ordering</strong>: Control the order in which MCP tools appear in the tree</li>
+<li><strong>Dynamic Reloading</strong>: Hot-reload MCP tools when <code>mcp.json</code> changes</li>
+<li><strong>Tool Metadata</strong>: Extract and display MCP tool capabilities in UI</li>
+<li><strong>Health Checks</strong>: Monitor MCP server availability</li>
+<li><strong>Failover</strong>: Support fallback servers for high availability</li>
+</ol>
+<hr />
+<p><strong>Implementation Status: Complete and Production-Ready</strong> ✅</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/weaviate/elysia" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/weaviate/elysia-frontend" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/dannyjameswilliams" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M202.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1M496 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2m-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3m-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/thomashacker" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M202.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1M496 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2m-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3m-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://www.linkedin.com/in/dannyjameswilliams/" target="_blank" rel="noopener" title="www.linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://www.linkedin.com/in/edwardschmuhl/" target="_blank" rel="noopener" title="www.linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,32 @@
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant A as Agent
+    participant M as MCPTool
+    participant S as MCP Server
+    
+    U->>A: "Search ML papers and analyze sentiment"
+    
+    Note over A: Decision: Need to use MCP tools
+    
+    A->>M: action='list'
+    M->>S: Discover tools
+    S-->>M: [search, analyze, ...]
+    M-->>A: Tool list
+    
+    Note over A: I see 'search' and 'analyze' tools<br/>I'll use them sequentially
+    
+    A->>M: action='execute'<br/>tool_name='search'<br/>tool_inputs={query: 'ML papers'}
+    M->>S: Run search tool
+    S-->>M: ["Paper 1", "Paper 2", ...]
+    M-->>A: Search results
+    
+    Note over A: Got papers, now analyze sentiment
+    
+    A->>M: action='execute'<br/>tool_name='analyze'<br/>tool_inputs={text: 'Paper 1...'}
+    M->>S: Run analyze tool
+    S-->>M: {sentiment: 0.85}
+    M-->>A: Analysis result
+    
+    A-->>U: "Found 3 ML papers.<br/>Sentiment is positive (0.85)"
+
